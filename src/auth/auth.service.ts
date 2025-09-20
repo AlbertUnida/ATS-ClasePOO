@@ -1,0 +1,209 @@
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as argon2 from 'argon2';
+import { PrismaService } from '../prisma/prisma.service';
+import {
+  ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL, JWT_SECRET, JWT_REFRESH_SECRET,
+  COOKIE_DOMAIN, COOKIE_SECURE,
+} from './auth.constants';
+import { ConflictException, ForbiddenException } from '@nestjs/common';
+
+@Injectable()
+export class AuthService {
+  constructor(private prisma: PrismaService, private jwt: JwtService) { }
+
+  // Login para cualquier usuario (incluye SUPERADMIN en tenant 'root')
+  async validateLogin(email: string, password: string, tenantSlug?: string, fallbackTenantSlug?: string) {
+    const slug = tenantSlug ?? fallbackTenantSlug ?? 'root';
+    const tenant = await this.prisma.tenants.findUnique({ where: { slug } });
+    if (!tenant) throw new BadRequestException('Tenant inválido');
+
+    const user = await this.prisma.usuarios.findFirst({
+      where: { email: email.toLowerCase(), tenantId: tenant.id, active: true },
+      include: { roles: { include: { role: true } } },
+    });
+    if (!user) throw new UnauthorizedException('Credenciales Invalidas');
+
+    const ok = await argon2.verify(user.password, password);
+    if (!ok) throw new UnauthorizedException('Credenciales Invalidas');
+
+    const roles = user.roles.map(r => r.role.name);
+    const isSuperAdmin = roles.includes('SUPERADMIN') && tenant.slug === 'root';
+
+    // Si luego añadís permisos granulares, acá los cargarías
+    const perms: string[] = isSuperAdmin ? ['*'] : [];
+
+    const payload = { sub: user.id, tid: tenant.id, roles, perms, isSuperAdmin };
+    return { user, tenant, payload };
+  }
+
+  signAccess(payload: any) {
+    return this.jwt.sign(payload, { secret: JWT_SECRET, expiresIn: ACCESS_TOKEN_TTL });
+  }
+
+  signRefresh(payload: { sub: string; tid: string; }) {
+    return this.jwt.sign(payload, { secret: JWT_REFRESH_SECRET, expiresIn: REFRESH_TOKEN_TTL });
+  }
+
+  cookieOpts(maxAgeMs?: number) {
+    return {
+      httpOnly: true,
+      secure: COOKIE_SECURE,
+      sameSite: COOKIE_SECURE ? ('none' as const) : ('lax' as const),
+      domain: COOKIE_DOMAIN,
+      path: '/auth',
+      maxAge: maxAgeMs,
+    };
+  }
+
+  ttlToMs(ttl: string) {
+    const m = ttl.match(/^(\d+)([smhd])$/i);
+    if (!m) return 0; const n = +m[1], u = m[2].toLowerCase();
+    return n * (u === 's' ? 1000 : u === 'm' ? 60000 : u === 'h' ? 3600000 : 86400000);
+  }
+
+  async bootstrapCreateSuperadmin(dto: { name: string; email: string; password: string; }) {
+    const root = await this.prisma.tenants.upsert({
+      where: { slug: 'root' }, update: {}, create: { name: 'Root', slug: 'root' },
+    });
+    const superRole = await this.prisma.roles.upsert({
+      where: { tenantId_name: { tenantId: root.id, name: 'SUPERADMIN' } },
+      update: {}, create: { tenantId: root.id, name: 'SUPERADMIN' },
+    });
+
+    // permitir solo si aún no hay SUPERADMIN
+    const exists = await this.prisma.usuarioRoles.findFirst({ where: { roleId: superRole.id } });
+    if (exists) throw new ForbiddenException('Ya existe un superadministrador');
+
+    const email = dto.email.toLowerCase();
+    const hash = await argon2.hash(dto.password);
+
+    try {
+      const user = await this.prisma.usuarios.create({
+        data: { tenantId: root.id, name: dto.name, email, password: hash, active: true },
+      });
+      await this.prisma.usuarioRoles.create({ data: { userId: user.id, roleId: superRole.id } });
+
+      const payload = { sub: user.id, tid: root.id, roles: ['SUPERADMIN'], perms: ['*'], isSuperAdmin: true };
+      return { user, tenant: { slug: 'root', id: root.id }, payload };
+    } catch (e: any) {
+      if (e.code === 'P2002') throw new ConflictException('Email ya existe en root');
+      throw e;
+    }
+  }
+
+  async adminCreateOrPromoteSuperadmin(dto: { name: string; email: string; password?: string }) {
+    const root = await this.prisma.tenants.upsert({
+      where: { slug: 'root' }, update: {}, create: { name: 'Root', slug: 'root' },
+    });
+    const superRole = await this.prisma.roles.upsert({
+      where: { tenantId_name: { tenantId: root.id, name: 'SUPERADMIN' } },
+      update: {}, create: { tenantId: root.id, name: 'SUPERADMIN' },
+    });
+
+    const email = dto.email.toLowerCase();
+    const dataUpdate: any = { name: dto.name };
+    let passwordHash: string | undefined;
+
+    if (dto.password) {
+      passwordHash = await argon2.hash(dto.password);
+      dataUpdate.password = passwordHash;
+    }
+
+    // crea o actualiza usuario en root
+    const user = await this.prisma.usuarios.upsert({
+      where: { tenantId_email: { tenantId: root.id, email } },
+      update: dataUpdate,
+      create: {
+        tenantId: root.id,
+        name: dto.name,
+        email,
+        password: passwordHash ?? (await argon2.hash(Math.random().toString(36).slice(2))), // por si no envían password
+        active: true,
+      },
+    });
+
+    // asigna rol SUPERADMIN (idempotente)
+    await this.prisma.usuarioRoles.upsert({
+      where: { userId_roleId: { userId: user.id, roleId: superRole.id } },
+      update: {},
+      create: { userId: user.id, roleId: superRole.id },
+    });
+
+    return user;
+  }
+
+  async createTenantUser(dto: {
+    name: string;
+    email: string;
+    password: string;
+    tenantSlug: string;
+    roleId?: string;
+    roleName?: string;
+    candidatoId?: string;            // 👈 NUEVO
+  }) {
+    const tenant = await this.prisma.tenants.findUnique({ where: { slug: dto.tenantSlug } });
+    if (!tenant) throw new BadRequestException('Tenant inválido');
+
+    // 🔎 Validación opcional del candidato
+    let candidateIdToLink: string | null = null;
+    if (dto.candidatoId) {
+      const cand = await this.prisma.candidatos.findUnique({ where: { id: dto.candidatoId } });
+      if (!cand || cand.tenantId !== tenant.id) {
+        throw new BadRequestException('Candidato inválido para este tenant');
+      }
+      // Evita doble vínculo (tu unique @@unique([tenantId, candidatoId]) igual lo enforcea)
+      const alreadyLinked = await this.prisma.usuarios.findFirst({
+        where: { tenantId: tenant.id, candidatoId: dto.candidatoId }
+      });
+      if (alreadyLinked) throw new ConflictException('Este candidato ya tiene un usuario');
+      candidateIdToLink = cand.id;
+    }
+
+    // 🔐 Resolver rol
+    let role;
+    if (dto.roleId) {
+      role = await this.prisma.roles.findUnique({ where: { id: dto.roleId } });
+      if (!role || role.tenantId !== tenant.id) throw new BadRequestException('Rol inválido para este tenant');
+      if (role.name === 'SUPERADMIN') throw new ForbiddenException('SUPERADMIN se crea solo por flujo dedicado');
+    } else {
+      const normalized = (dto.roleName ?? 'CANDIDATO').trim().toUpperCase().replace(/-/g, '_'); // 👈 default
+      if (normalized === 'SUPERADMIN') throw new ForbiddenException('SUPERADMIN se crea solo por flujo dedicado');
+      role = await this.prisma.roles.upsert({
+        where: { tenantId_name: { tenantId: tenant.id, name: normalized } },
+        update: {},
+        create: { tenantId: tenant.id, name: normalized },
+      });
+    }
+
+    const email = dto.email.toLowerCase();
+    const hash = await argon2.hash(dto.password);
+
+    try {
+      const user = await this.prisma.usuarios.create({
+        data: {
+          tenantId: tenant.id,
+          name: dto.name,
+          email,
+          password: hash,
+          active: true,
+          candidatoId: candidateIdToLink,   // 👈 enlaza usuario ⇄ candidato
+        },
+      });
+
+      await this.prisma.usuarioRoles.upsert({
+        where: { userId_roleId: { userId: user.id, roleId: role.id } },
+        update: {},
+        create: { userId: user.id, roleId: role.id },
+      });
+
+      const { password, ...safe } = user as any;
+      return { ...safe, roles: [role.name], tenant: { id: tenant.id, slug: tenant.slug } };
+    } catch (e: any) {
+      if (e.code === 'P2002') throw new ConflictException('Email ya existe en este tenant');
+      if (e.code === 'P2003') throw new BadRequestException('FK inválida (revisa candidatoId/tenant)');
+      throw e;
+    }
+  }
+
+}

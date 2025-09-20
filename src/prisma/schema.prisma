@@ -1,0 +1,403 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenants {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+
+  usuarios                      Usuarios[]
+  roles                         Roles[] // <-- agregar
+  cargos                        Cargos[]
+  vacantes                      Vacantes[]
+  candidatos                    Candidatos[]
+  postulaciones                 Postulaciones[]
+  eventos                       EventoPostulaciones[] // <-- agregar
+  entrevistas                   Entrevistas[] // <-- agregar
+  feedbacks                     Feedback[] // <-- agregar
+  PerfilCandidato               PerfilCandidato[]
+  Formularios                   Formularios[]
+  RespuestasFormularioCandidato RespuestasFormularioCandidato[]
+}
+
+model Usuarios {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenants   Tenants  @relation(fields: [tenantId], references: [id])
+  name      String
+  email     String
+  password  String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // vínculo opcional al registro de candidato (ver ajuste opcional de FK compuesta)
+  candidatoId String?
+  candidato   Candidatos? @relation(fields: [candidatoId], references: [id])
+
+  roles                UsuarioRoles[]
+  EventoPostulaciones  EventoPostulaciones[]
+  AsistentesEntrevista AsistentesEntrevista[]
+  UsuarioPermisos      UsuarioPermisos[]
+
+  @@unique([tenantId, email])
+  @@unique([tenantId, candidatoId]) // 1:1 cuando es candidato (permite null)
+  @@index([tenantId])
+}
+
+model Roles {
+  id           String         @id @default(cuid())
+  tenantId     String
+  tenant       Tenants        @relation(fields: [tenantId], references: [id])
+  name         String
+  users        UsuarioRoles[]
+  RolePermisos RolePermisos[]
+
+  @@unique([tenantId, name])
+}
+
+model UsuarioRoles {
+  userId String
+  roleId String
+  user   Usuarios @relation(fields: [userId], references: [id])
+  role   Roles    @relation(fields: [roleId], references: [id])
+
+  @@id([userId, roleId])
+}
+
+model Cargos {
+  id               String   @id @default(cuid())
+  tenantId         String
+  tenant           Tenants  @relation(fields: [tenantId], references: [id])
+  nombre           String
+  competenciasJson String?
+  createdAt        DateTime @default(now())
+
+  vacantes Vacantes[]
+
+  @@index([tenantId])
+}
+
+model Vacantes {
+  id                  String   @id @default(cuid())
+  tenantId            String
+  tenant              Tenants  @relation(fields: [tenantId], references: [id])
+  cargoId             String
+  cargo               Cargos   @relation(fields: [cargoId], references: [id])
+  ubicacion           String?
+  tipoContrato        String?
+  estado              String   @default("abierta")
+  flujoAprobacionJson String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  postulaciones Postulaciones[]
+  Formularios   Formularios[]
+
+  @@index([tenantId, cargoId, estado])
+}
+
+model Candidatos {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tenant     Tenants  @relation(fields: [tenantId], references: [id])
+  nombre     String
+  email      String
+  telefono   String?
+  cvUrl      String?
+  perfilJson String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt // <--- NUEVO
+
+  postulaciones   Postulaciones[]
+  PerfilCandidato PerfilCandidato?
+  Usuarios        Usuarios[]
+
+  @@unique([tenantId, email]) // <--- cambia index -> unique
+  @@index([tenantId]) // <--- NUEVO
+}
+
+model Postulaciones {
+  id               String     @id @default(cuid())
+  tenantId         String
+  tenant           Tenants    @relation(fields: [tenantId], references: [id])
+  vacanteId        String
+  vacante          Vacantes   @relation(fields: [vacanteId], references: [id])
+  candidatoId      String
+  candidato        Candidatos @relation(fields: [candidatoId], references: [id])
+  estadoActual     String     @default("CREADA")
+  fuente           String?
+  createdAt        DateTime   @default(now())
+  matchScore       Float?
+  matchDetailsJson String?
+  updatedAt        DateTime   @updatedAt
+
+  eventos                       EventoPostulaciones[]
+  entrevistas                   Entrevistas[]
+  feedbacks                     Feedback[]
+  RespuestasFormularioCandidato RespuestasFormularioCandidato[]
+
+  @@unique([vacanteId, candidatoId])
+  @@index([tenantId, vacanteId, candidatoId])
+  @@index([tenantId, estadoActual]) // <--- NUEVO (listados por etapa)
+}
+
+model EventoPostulaciones {
+  id            String        @id @default(cuid())
+  tenantId      String
+  tenant        Tenants       @relation(fields: [tenantId], references: [id])
+  postulacionId String
+  postulacion   Postulaciones @relation(fields: [postulacionId], references: [id], onDelete: Cascade)
+  estadoFrom    String?
+  estadoTo      String
+  actorUserId   String?
+  actor         Usuarios?     @relation(fields: [actorUserId], references: [id])
+  motivo        String?
+  ts            DateTime      @default(now())
+
+  @@index([tenantId, postulacionId])
+}
+
+model Entrevistas {
+  id                   String                 @id @default(cuid())
+  tenantId             String
+  tenant               Tenants                @relation(fields: [tenantId], references: [id])
+  postulacionId        String
+  postulacion          Postulaciones          @relation(fields: [postulacionId], references: [id], onDelete: Cascade)
+  tipo                 String
+  inicioTs             DateTime
+  finTs                DateTime
+  canal                String?
+  resultado            String?
+  notas                String?
+  AsistentesEntrevista AsistentesEntrevista[]
+
+  @@index([tenantId, postulacionId])
+}
+
+model Feedback {
+  id               String        @id @default(cuid())
+  tenantId         String
+  tenant           Tenants       @relation(fields: [tenantId], references: [id])
+  postulacionId    String
+  postulacion      Postulaciones @relation(fields: [postulacionId], references: [id], onDelete: Cascade)
+  evaluadorUserId  String?
+  puntaje          Int
+  competenciasJson String?
+  comentario       String?
+  recomendacion    Boolean?
+  ts               DateTime      @default(now())
+
+  @@index([tenantId, postulacionId])
+}
+
+model PerfilCandidato {
+  id           String                 @id @default(cuid())
+  tenantId     String
+  tenant       Tenants                @relation(fields: [tenantId], references: [id])
+  candidatoId  String                 @unique
+  candidato    Candidatos             @relation(fields: [candidatoId], references: [id])
+  resumen      String?
+  linkedin     String?
+  portfolio    String?
+  updatedAt    DateTime               @updatedAt
+  // Relaciones
+  educaciones  EducacionCandidato[]
+  experiencias ExperienciaCandidato[]
+  habilidades  HabilidadCandidato[]
+  idiomas      IdiomaCandidato[]
+}
+
+model EducacionCandidato {
+  id          String          @id @default(cuid())
+  perfilId    String
+  perfil      PerfilCandidato @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  institucion String
+  titulo      String
+  inicio      DateTime?
+  fin         DateTime?
+  enCurso     Boolean         @default(false)
+}
+
+model ExperienciaCandidato {
+  id              String          @id @default(cuid())
+  perfilId        String
+  perfil          PerfilCandidato @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  empresa         String
+  cargo           String
+  inicio          DateTime?
+  fin             DateTime?
+  descripcion     String?
+  tecnologiasJson String?
+}
+
+enum NivelHabilidad {
+  basico
+  intermedio
+  avanzado
+  experto
+}
+
+model HabilidadCandidato {
+  id       String          @id @default(cuid())
+  perfilId String
+  perfil   PerfilCandidato @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  skill    String
+  nivel    NivelHabilidad
+  anios    Int?
+
+  @@index([perfilId, skill])
+}
+
+enum NivelIdioma {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+  NATIVE
+}
+
+model IdiomaCandidato {
+  id       String          @id @default(cuid())
+  perfilId String
+  perfil   PerfilCandidato @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  idioma   String
+  nivel    NivelIdioma
+}
+
+// ---------- FORMULARIOS CONFIGURABLES Y RESPUESTAS ----------
+model Formularios {
+  id        String      @id @default(cuid())
+  tenantId  String
+  tenant    Tenants     @relation(fields: [tenantId], references: [id])
+  nombre    String
+  version   Int         @default(1)
+  alcance   String // 'tenant' | 'vacante'
+  vacanteId String?
+  vacante   Vacantes?   @relation(fields: [vacanteId], references: [id])
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  preguntas Preguntas[]
+
+  @@index([tenantId, alcance, vacanteId])
+}
+
+enum TipoPregunta {
+  SINGLE_CHOICE
+  MULTI_CHOICE
+  YES_NO
+  NUMBER
+  TEXT_SHORT
+  TEXT_LONG
+  DATE
+  FILE
+}
+
+model Preguntas {
+  id                String             @id @default(cuid())
+  formularioId      String
+  formulario        Formularios        @relation(fields: [formularioId], references: [id], onDelete: Cascade)
+  seccion           String?
+  orden             Int
+  texto             String
+  tipo              TipoPregunta
+  requerida         Boolean            @default(false)
+  opciones          OpcionesPregunta[]
+  visibilidadIfJson String? // lógica condicional simple (opcional)
+}
+
+model OpcionesPregunta {
+  id         String    @id @default(cuid())
+  preguntaId String
+  pregunta   Preguntas @relation(fields: [preguntaId], references: [id], onDelete: Cascade)
+  etiqueta   String
+  valor      String // clave estable para métricas
+  orden      Int
+}
+
+model RespuestasFormularioCandidato {
+  id                     String        @id @default(cuid())
+  tenantId               String
+  tenant                 Tenants       @relation(fields: [tenantId], references: [id])
+  postulacionId          String
+  postulacion            Postulaciones @relation(fields: [postulacionId], references: [id], onDelete: Cascade)
+  formularioId           String
+  versionFormulario      Int
+  formularioSnapshotJson String?
+  respuestas             Respuestas[]
+
+  @@unique([postulacionId, formularioId, versionFormulario])
+}
+
+model Respuestas {
+  id          String                        @id @default(cuid())
+  rfcId       String
+  rfc         RespuestasFormularioCandidato @relation(fields: [rfcId], references: [id], onDelete: Cascade)
+  preguntaId  String
+  // valores soportados por tipo de pregunta
+  valorTexto  String?
+  valorNumero Float?
+  valorFecha  DateTime?
+  valoresJson String? // para MULTI_CHOICE
+  opcionValor String? // para SINGLE_CHOICE/YES_NO
+
+  @@index([rfcId, preguntaId])
+}
+
+// ---------- ASISTENTES DE ENTREVISTA (opcional) ----------
+model AsistentesEntrevista {
+  entrevistaId String
+  usuarioId    String
+  entrevista   Entrevistas @relation(fields: [entrevistaId], references: [id])
+  usuario      Usuarios    @relation(fields: [usuarioId], references: [id])
+
+  @@id([entrevistaId, usuarioId])
+}
+
+model Permisos {
+  id          String            @id @default(cuid())
+  codigo      String            @unique // ej: "vacantes.create"
+  descripcion String?
+  roles       RolePermisos[]
+  usuarios    UsuarioPermisos[]
+}
+
+model RolePermisos {
+  roleId    String
+  permisoId String
+  allowed   Boolean @default(true)
+
+  role    Roles    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permiso Permisos @relation(fields: [permisoId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permisoId])
+  @@index([permisoId])
+}
+
+model UsuarioPermisos {
+  userId    String
+  permisoId String
+  allowed   Boolean @default(true) // poné false para denegar explícito
+
+  user    Usuarios @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permiso Permisos @relation(fields: [permisoId], references: [id], onDelete: Cascade)
+
+  @@id([userId, permisoId])
+  @@index([permisoId])
+}

@@ -1,0 +1,38 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: ats-mysql
+    env_file:
+      - .env.db
+    ports:
+      - "3307:3306"                   # expone MySQL en tu host por 3307 (deja libre 3306)
+    command: ["--default-authentication-plugin=mysql_native_password"]
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "${MYSQL_USER}", "-p${MYSQL_PASSWORD}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  api-ats:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ats-api
+    depends_on:
+      mysql:
+        condition: service_healthy
+    # Carga .env para PORT y variables MySQL (no para DATABASE_URL)
+    env_file:
+      - .env.api
+    ports:
+      - "${PORT:-4050}:4050"
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    # Aplica migraciones y arranca Nest en modo dev
+    command: sh -c "npx prisma migrate deploy --schema=src/prisma/schema.prisma && npm run start:dev"
+
+volumes:
+  mysql-data:
