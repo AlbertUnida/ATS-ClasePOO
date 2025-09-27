@@ -7,51 +7,128 @@ import { CreatePostulacionDto } from './dto/create-postulacione.dto';
 export class PostulacionesService {
   constructor(private prisma: PrismaService) { }
 
-  async create(dto: CreatePostulacionDto) {
-    const tenant = await this.prisma.tenants.findUnique({ where: { slug: dto.tenantSlug } });
+  /**
+   * Crea una nueva postulación.
+   * - Valida tenant, vacante y candidato
+   * - Previene duplicados
+   * - Registra evento de postulación inicial
+   */
+  async create(
+    dto: CreatePostulacionDto,
+    candidatoId: string,
+    userContext: {
+      userId?: string;
+      accountId?: string;
+      email?: string;
+      ip?: string;
+      userAgent?: string;
+      path?: string;
+    }
+  ) {
+    const tenant = await this.prisma.tenants.findUnique({
+      where: { slug: dto.tenantSlug },
+    });
     if (!tenant) throw new NotFoundException('Tenant no encontrado');
 
-    const vacante = await this.prisma.vacantes.findUnique({ where: { id: dto.vacanteId } });
+    const vacante = await this.prisma.vacantes.findUnique({
+      where: { id: dto.vacanteId },
+    });
     if (!vacante || vacante.tenantId !== tenant.id) {
-      throw new BadRequestException('vacanteId inválido para este tenant');
+      throw new BadRequestException('Vacante inválida para este tenant');
     }
 
-    const candidato = await this.prisma.candidatos.findUnique({ where: { id: dto.candidatoId } });
+    const candidato = await this.prisma.candidatos.findUnique({
+      where: { id: candidatoId },
+    });
     if (!candidato || candidato.tenantId !== tenant.id) {
-      throw new BadRequestException('candidatoId inválido para este tenant');
+      throw new BadRequestException('Candidato inválido para este tenant');
     }
 
     try {
-      return await this.prisma.postulaciones.create({
+      const postulacion = await this.prisma.postulaciones.create({
         data: {
           tenantId: tenant.id,
           vacanteId: vacante.id,
           candidatoId: candidato.id,
           fuente: dto.fuente,
-          // estadoActual por defecto "CREADA" (del schema)
+          mensaje: dto.mensaje,
+          cvExtraUrl: dto.cvExtraUrl,
+          estado: 'postulado',
+          createdByUserId: userContext.userId,
+          createdByAccountId: userContext.accountId,
         },
-        include: { vacante: true, candidato: true },
+        include: {
+          vacante: true,
+          candidato: true,
+        },
       });
+
+      // Evento de postulación inicial
+      await this.prisma.eventoPostulaciones.create({
+        data: {
+          tenantId: tenant.id,
+          postulacionId: postulacion.id,
+          estadoFrom: null,
+          estadoTo: 'postulado',
+          motivo: 'Postulación inicial',
+        },
+      });
+
+      await this.prisma.auditLog.create({
+        data: {
+          tenantId: tenant.id,
+          actorUserId: userContext.userId,
+          actorAccountId: userContext.accountId,
+          actorEmail: userContext.email,
+          action: 'CREATE',
+          entity: 'Postulaciones',
+          entityId: postulacion.id,
+          note: `Candidato se postuló a vacante "${vacante.id}"`,
+          ip: userContext.ip,
+          userAgent: userContext.userAgent,
+          path: userContext.path,
+        },
+      });
+
+
+      return postulacion;
     } catch (e: any) {
-      if (e.code === 'P2002') throw new ConflictException('El candidato ya está postulado a esa vacante');
+      if (e.code === 'P2002') {
+        throw new ConflictException('El candidato ya está postulado a esta vacante');
+      }
       throw e;
     }
   }
 
-  async list(tenantSlug: string, vacanteId?: string, candidatoId?: string, estado?: string) {
-    const t = await this.prisma.tenants.findUnique({ where: { slug: tenantSlug } });
+  /**
+   * Lista postulaciones filtrando por tenant, vacante, candidato o estado.
+   */
+  async list(tenantSlug: string, filters: {
+    vacanteId?: string;
+    candidatoId?: string;
+    estado?: string;
+  }) {
+    const t = await this.prisma.tenants.findUnique({
+      where: { slug: tenantSlug },
+    });
     if (!t) throw new NotFoundException('Tenant no encontrado');
 
+    const where: any = {
+      tenantId: t.id,
+    };
+    if (filters.vacanteId) where.vacanteId = filters.vacanteId;
+    if (filters.candidatoId) where.candidatoId = filters.candidatoId;
+    if (filters.estado) where.estado = filters.estado;
+
     return this.prisma.postulaciones.findMany({
-      where: {
-        tenantId: t.id,
-        ...(vacanteId ? { vacanteId } : {}),
-        ...(candidatoId ? { candidatoId } : {}),
-        ...(estado ? { estadoActual: estado } : {}),
+      where,
+      include: {
+        vacante: true,
+        candidato: true,
       },
-      include: { vacante: true, candidato: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
-
 }

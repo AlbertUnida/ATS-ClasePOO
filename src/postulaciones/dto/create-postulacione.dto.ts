@@ -4,17 +4,24 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 
 export class CreatePostulacionDto {
-    @ApiProperty() @IsString() @IsNotEmpty()
-    @Transform(({ value }) => value?.toString().trim().toLowerCase())
-    tenantSlug: string;
+  @ApiProperty()
+  @IsString() @IsNotEmpty()
+  @Transform(({ value }) => value?.toString().trim().toLowerCase())
+  tenantSlug: string;
 
-    @ApiProperty() @IsString() @IsNotEmpty()
-    vacanteId: string;
+  @ApiProperty({ description: 'ID de la vacante a la que se postula' })
+  @IsString() @IsNotEmpty()
+  vacanteId: string;
 
-    @ApiProperty() @IsString() @IsNotEmpty()
-    candidatoId: string;
+  @ApiPropertyOptional({ description: 'Fuente de la postulación (portal, referido, etc.)' })
+  @IsOptional() @IsString()
+  fuente?: string;
 
-    @ApiPropertyOptional({ description: 'Fuente de la postulación (portal, referido, etc.)' })
-    @IsOptional() @IsString()
-    fuente?: string;
+  @ApiPropertyOptional({ description: 'Mensaje opcional del candidato (carta de presentación)' })
+  @IsOptional() @IsString()
+  mensaje?: string;
+
+  @ApiPropertyOptional({ description: 'URL opcional de un CV personalizado' })
+  @IsOptional() @IsString()
+  cvExtraUrl?: string;
 }

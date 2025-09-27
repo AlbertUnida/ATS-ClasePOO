@@ -5,7 +5,7 @@ import { CreateTenantDto } from './dto/create-tenant.dto';
 import { SuperAdminGuard } from '../common/guards/superadmin.guard';
 import { formatAsuncion } from '../common/utils/time.util';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody, ApiParam, } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody, ApiParam, ApiCookieAuth } from '@nestjs/swagger';
 //import { UpdateTenantDto } from './dto/update-tenant.dto';
 
 @ApiTags('tenants')
@@ -13,8 +13,10 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody, ApiParam, }
 export class TenantsController {
   constructor(private readonly tenants: TenantsService) { }
 
-  @UseGuards(AuthGuard('jwt'), SuperAdminGuard)
+
   @Post()
+  @UseGuards(AuthGuard('jwt'), SuperAdminGuard)
+  @ApiCookieAuth('access-token')
   @ApiOperation({ summary: 'Crear un nuevo tenant (solo SuperAdmin)' })
   @ApiBody({ type: CreateTenantDto })
   @ApiResponse({ status: 201, description: 'Tenant creado exitosamente' })
@@ -25,6 +27,8 @@ export class TenantsController {
   }
 
   @Get()
+  @UseGuards(AuthGuard('jwt'), SuperAdminGuard)
+  @ApiCookieAuth('access-token')
   @ApiOperation({ summary: 'Listar todos los tenants' })
   @ApiResponse({ status: 200, description: 'Lista de tenants' })
   findAll() {
@@ -32,6 +36,8 @@ export class TenantsController {
   }
 
   @Get(':slug')
+  @UseGuards(AuthGuard('jwt'), SuperAdminGuard)
+  @ApiCookieAuth('access-token')
   @ApiOperation({ summary: 'Obtener tenant por slug' })
   @ApiParam({ name: 'slug', description: 'Slug del tenant' })
   @ApiResponse({ status: 200, description: 'Tenant encontrado' })
@@ -43,6 +49,8 @@ export class TenantsController {
   // en TenantsController
   // src/tenants/tenants.controller.ts
   @Get(':slug/roles')
+  @UseGuards(AuthGuard('jwt'), SuperAdminGuard)
+  @ApiCookieAuth('access-token')
   @ApiOperation({ summary: 'Listar roles de un tenant' })
   @ApiParam({ name: 'slug', description: 'Slug del tenant' })
   @ApiResponse({ status: 200, description: 'Lista de roles para el tenant' })

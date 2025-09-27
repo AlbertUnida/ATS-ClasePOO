@@ -12,5 +12,5 @@ export class CreateTenantDto {
 
     // opcional, por defecto 'ACTIVE'
     @IsOptional() @IsString()
-    status?: 'ACTIVO' | 'SUSPENDIDO' | 'ARCHIVADO';
+    status?: 'activo' | 'suspendido' | 'archivado';
 }

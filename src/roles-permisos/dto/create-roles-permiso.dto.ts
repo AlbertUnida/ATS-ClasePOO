@@ -9,4 +9,11 @@ export class CreateRolesPermisoDto {
 
     @IsOptional() @IsArray() permissionCodes?: string[]; // recomendado
     @IsOptional() @IsArray() permissionIds?: string[];   // opcional
+
+    // OPCIONAL para escenarios más complejos
+    @IsOptional() @IsArray()
+    permissions?: {
+        id: string;
+        allowed?: boolean; // por si querés negar permisos explícitamente
+    }[];
 }

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CreateCargoDto } from './dto/create-cargo.dto';
 import { UpdateCargoDto } from './dto/update-cargo.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -12,21 +12,30 @@ export class CargosService {
     return { ...rest, competencias: competenciasJson ? JSON.parse(competenciasJson) : undefined };
   }
 
-  async create(dto: CreateCargoDto) {
+  async create(dto: CreateCargoDto, user: any) {
+    if (!user.roles.includes('SUPERADMIN') && user.tenantSlug !== dto.tenantSlug) {
+      throw new ForbiddenException('No tienes acceso a este tenant');
+    }
+
     const tenant = await this.prisma.tenants.findUnique({ where: { slug: dto.tenantSlug } });
     if (!tenant) throw new NotFoundException('Tenant no encontrado');
 
     const cargo = await this.prisma.cargos.create({
       data: {
         tenantId: tenant.id,
-        nombre: dto.nombre, // ya viene trim del DTO (Transform + ValidationPipe)
+        nombre: dto.nombre,
         competenciasJson: dto.competencias ? JSON.stringify(dto.competencias) : undefined,
       },
     });
+
     return this.present(cargo);
   }
 
-  async listByTenant(tenantSlug: string) {
+  async listByTenant(tenantSlug: string, user: any) {
+    if (!user.roles.includes('SUPERADMIN') && user.tenantSlug !== tenantSlug) {
+      throw new ForbiddenException('No tienes acceso a este tenant');
+    }
+
     const t = await this.prisma.tenants.findUnique({ where: { slug: tenantSlug } });
     if (!t) throw new NotFoundException('Tenant no encontrado');
 
@@ -34,6 +43,7 @@ export class CargosService {
       where: { tenantId: t.id },
       orderBy: { createdAt: 'desc' },
     });
+
     return rows.map(this.present);
   }
 

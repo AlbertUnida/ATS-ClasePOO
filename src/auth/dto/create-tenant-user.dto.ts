@@ -5,7 +5,8 @@ export class CreateTenantUserDto {
   @IsString() @IsNotEmpty() name: string;
   @IsEmail() email: string;
   @IsString() @MinLength(8) password: string;
-  @IsString() @IsNotEmpty() tenantSlug: string;
+  @IsOptional() @IsString() @IsNotEmpty()
+  tenantSlug?: string;
 
   // Usa UNO de los dos:
   @ValidateIf(o => !o.roleName) @IsOptional() @IsString() @IsNotEmpty()

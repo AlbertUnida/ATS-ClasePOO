@@ -158,3 +158,177 @@ Recolección de feedback.
 - Reportes y Métricas:
 
 Crear endpoints para obtener métricas del reclutamiento.
+
+
+
+tengo un proyecto backned con nestjs + prisma, docker un bd mysql que lo levanto en docker, la api y la base de datos lo tengo en un mismo dokcer compose.yml , 
+el proyecto lo subi a repositorio github, mi consulta es cuando haga un gitclone que debo tener instalado para levantar bien el proyecto ?
+
+
+
+ok, como seria lo mejor tengo el rol superadmin, creo un nuevo tenants/empresa/cliente , luego debo crear usuarios para esa empresa, pero antes debo crear ya el rol o roles  ?? PORQUE TENGO OTRO MODULO DE PERMISOS Y ROLES, permisos y roles serian dos cosas diferentes no ?? LOS ROLES BASICOS para una empresa es admin, y reclutador , para el tema de los candidatos no se como deberia ser aahora porque en teoria ya va a poder a ver todas las postulaciones, y al registrarse podra postularse al que quiera, pero no solo a una, sino a las que el quiera, pero la empresa cliente puede pedir mas roles asi que se debe tener en cuenta que puede tener x cantidad de roles, por otro lado para ganar escalabilidad y flexibilidad, pensando en el front (otro desarrollador) los roles "no superadmin" estaran limitados segun lo que el superadmin le quiera dar, 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+¡Vamos paso a paso! Sí: roles y permisos son cosas distintas.
+
+Permisos = capacidades atómicas (ej. vacantes.create, postulaciones.move).
+
+Roles = paquetes de permisos, siempre por tenant (ej. ADMIN, RECLUTADOR del tenant ACME).
+
+Dado tu objetivo (escalable, simple y que el front pueda ocultar/mostrar cosas), te propongo este flujo base y dónde encaja en tu código actual:
+
+1) Define el catálogo global de permisos (una vez)
+
+Crea una lista fija de códigos y descríbelos en Permisos (semilla inicial):
+
+tenants.read, tenants.write (solo SUPERADMIN)
+
+roles.read, roles.write
+
+users.read, users.create, users.update, users.disable
+
+vacantes.read, vacantes.create, vacantes.update, vacantes.publish, vacantes.close
+
+candidatos.read, candidatos.create, candidatos.update
+
+postulaciones.read, postulaciones.move, postulaciones.comment
+
+entrevistas.schedule, feedback.create
+
+Esto lo puedes sembrar con un script o en un endpoint admin-only. Es estable y no depende del tenant.
+
+2) Al crear un tenant, siembra roles por defecto (idempotente)
+
+Cuando el SUPERADMIN hace POST /tenants, en el mismo transaction (o después) crea:
+
+ADMIN con permisos “amplios” del tenant (usuarios, roles, vacantes, candidatos, etc., pero no tenants.*).
+
+RECLUTADOR con permisos operativos (vacantes, candidatos, postulaciones, entrevistas, feedback) pero no administración de usuarios/roles.
+
+Ejemplo de mapeo inicial:
+
+ADMIN → roles.read/write, users.read/create/update/disable, vacantes.*, candidatos.*, postulaciones.*, entrevistas.schedule, feedback.create
+
+RECLUTADOR → vacantes.read/create/update, vacantes.publish (opcional), candidatos.read/create/update, postulaciones.read/move/comment, entrevistas.schedule, feedback.create
+
+Usa tu RolesPermisosService.createRole({ tenantSlug, name, permissionCodes }) para sembrarlos al toque de crear el tenant. Hazlo con upsert para que sea idempotente si re-ejecutas.
+
+3) Creación de usuarios del tenant
+
+SUPERADMIN: POST /auth/users (exige tenantSlug en el DTO).
+
+ADMIN del tenant: POST /auth/tenant/users (ignoras el tenantSlug del body y usas req.user.tenant como ya haces).
+
+El rol puede ser roleId o roleName. Si el cliente quiere nuevos roles, usa tu módulo roles-permisos para crearlos y asignar permisos.
+
+Con esto, no “tienes” que crear roles manualmente antes: ya habrá ADMIN y RECLUTADOR semillados en cada tenant; y si el cliente pide algo especial, lo agregas con el módulo.
+
+4) Guards en backend (mínimo)
+
+SuperAdminGuard para todo lo de /tenants y cualquier cosa global.
+
+TenantAdminGuard para la gestión de usuarios dentro del tenant.
+
+A futuro: un PermGuard('perm.code') cuando empieces a chequear permisos granulares. Por ahora con roles te alcanza.
+
+5) JWT y front
+
+En tu validateLogin puedes (cuando decidas) expandir permisos de los roles del usuario y ponerlos en payload.perms (array de strings). El front solo chequea perms (o roles por ahora) para mostrar/ocultar botones/menú.
+
+Por ahora ya cargas roles e isSuperAdmin. Está bien. Más adelante agregas perms resolviendo RolePermisos en el login.
+
+6) Candidatos (no staff)
+
+Con tu nuevo diseño:
+
+No necesitan Usuarios (staff) ni roles del tenant.
+
+Usan CandidatoCuentas (global) para autenticarse y pueden aplicar a cualquier tenant. Cada postulación crea (o upsertea) una ficha Candidatos en el tenant destino, enlazada a cuentaId.
+
+Las rutas públicas para ver vacantes no requieren login. Para postular, sí.
+
+Así mantienes el RBAC solo para personal de la empresa (ADMIN/RECLUTADOR) y separas el flujo candidato.
+
+Qué tocar ahora (mini-checklist)
+
+Sembrar permisos globales (una vez).
+
+En TenantsService.create, después de crear el tenant, sembrar ADMIN y RECLUTADOR con los permisos sugeridos (usando tu RolesPermisosService).
+
+Confirmar que:
+
+/tenants/** sigue con SuperAdminGuard (ok).
+
+/auth/users → SuperAdminGuard.
+
+/auth/tenant/users → TenantAdminGuard (ya fuerza el tenant del token).
+
+(Opcional) En login, cuando quieras, agrega perms resolviendo permisos por rol para que el front oculte/active acciones por permiso, no solo por rol.
+
+
+
+
+
+
+
+
+
+
+
+
+✅ MÓDULO DE CANDIDATOS — ¿Qué debe tener para estar completo?
+📦 1. Modelo Prisma → ✅ Ya lo tenés
+
+Candidatos
+
+Relación con CandidatoCuentas
+
+Relaciones con Postulaciones y Tenants → ✔️
+
+✍️ 2. DTOs necesarios → ✅ Ya tenés todos
+DTO	Propósito	Estado
+CreateCandidatoDto	Crear desde backend (admin)	✅
+CandidateRegisterDto	Registro público desde frontend	✅
+CandidateLoginDto	Login público	✅
+UpdateCandidatoDto	(opcional) editar perfil luego	🔜 (podés hacerlo simple más adelante)
+🧠 3. Service (CandidatosService)
+Método	Propósito	Estado
+create()	Solo para admin	✅
+register()	Registro de candidatos desde frontend	🚧 Debés implementarlo (te ayudo abajo)
+findOne()	Obtener datos del candidato logueado	🚧 Recomendado
+update()	(opcional) actualizar datos del perfil	🔜
+🎛️ 4. Controller (CandidatosController)
+Ruta	Método	Comentario
+POST /candidatos	create()	Protegido, solo admin
+POST /auth/candidatos/register	register()	Público, autoregistro
+GET /candidatos/me	findOne()	Protegido, obtener perfil del candidato logueado
+PATCH /candidatos/me	update()	(Opcional) permitir editar perfil
+
+Para me, usás el token JWT para identificar al candidato (decodificando cuentaId)
+
+🛡️ 5. Autenticación (AuthService)
+Función	Propósito
+hashPassword()	Hashear al registrar
+comparePassword()	Verificar al loguear
+generateToken()	Crear JWT para frontend
+validateUserByToken()	Para @UseGuards() con JWT

@@ -4,25 +4,35 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { toSlug } from '../common/utils/slug.util';
+import { RolesPermisosService } from '../roles-permisos/roles-permisos.service';
 
 @Injectable()
 export class TenantsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private rolesPermisosService: RolesPermisosService,
+  ) { }
 
   // tenants.service.ts
   async create(dto: CreateTenantDto) {
     const slug = dto.slug?.trim() || toSlug(dto.name);
     try {
-      return await this.prisma.$transaction(async (tx) => {
-        await tx.$executeRawUnsafe(`SET time_zone = '-03:00'`); // o 'America/Asuncion' si tienes TZ tables
+      const tenant = await this.prisma.$transaction(async (tx) => {
+        await tx.$executeRawUnsafe(`SET time_zone = '-03:00'`);
         return tx.tenants.create({
           data: {
             name: dto.name.trim(),
             slug,
-            status: (dto.status ?? 'active') as any,
+            status: (dto.status ?? 'activo') as any,
           },
         });
       });
+
+      // 👇 Crear roles base para este tenant
+      await this.rolesPermisosService.seedDefaultRoles(slug);
+
+      return tenant;
+
     } catch (e: any) {
       if (e.code === 'P2002') throw new ConflictException('slug ya existe');
       throw e;
@@ -35,7 +45,7 @@ export class TenantsService {
       // take/skip si quieres paginar rápido
     });
   }
-  
+
   // El slug es una versión simplificada, legible y "URL-amigable" de un nombre o título. 
   // Se usa comúnmente para identificar recursos de forma única en URLs.
   async findBySlug(slug: string) {

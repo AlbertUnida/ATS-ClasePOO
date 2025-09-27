@@ -7,5 +7,6 @@ import { PrismaModule } from '../prisma/prisma.module';
   imports: [PrismaModule], // Asegúrate de importar PrismaModule
   controllers: [RolesPermisosController],
   providers: [RolesPermisosService],
+  exports: [RolesPermisosService], // Exporta el servicio para usarlo en otros módulos
 })
 export class RolesPermisosModule { }

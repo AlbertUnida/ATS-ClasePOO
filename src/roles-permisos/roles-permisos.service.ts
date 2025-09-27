@@ -21,6 +21,7 @@ export class RolesPermisosService {
 
     const ids: string[] = [];
 
+    // Prioridad 1: permissionCodes
     if (dto.permissionCodes?.length) {
       const perms = await this.prisma.permisos.findMany({
         where: { codigo: { in: dto.permissionCodes } },
@@ -34,8 +35,12 @@ export class RolesPermisosService {
       ids.push(...perms.map(p => p.id));
     }
 
-    if (dto.permissionIds?.length) ids.push(...dto.permissionIds);
+    // Prioridad 2: permissionIds
+    if (dto.permissionIds?.length) {
+      ids.push(...dto.permissionIds);
+    }
 
+    // Asignar si hay IDs simples
     if (ids.length) {
       await this.prisma.$transaction(
         ids.map(permisoId =>
@@ -48,12 +53,25 @@ export class RolesPermisosService {
       );
     }
 
+    // Prioridad 3: permiso explícito con allowed=true/false
+    if (dto.permissions?.length) {
+      await this.prisma.$transaction(
+        dto.permissions.map(({ id, allowed = true }) =>
+          this.prisma.rolePermisos.upsert({
+            where: { roleId_permisoId: { roleId: role.id, permisoId: id } },
+            update: { allowed },
+            create: { roleId: role.id, permisoId: id, allowed },
+          })
+        )
+      );
+    }
+
     return this.prisma.roles.findUnique({
       where: { id: role.id },
       include: { RolePermisos: { include: { permiso: true } } },
     });
   }
-  
+
   // Obtener todos los roles
   // Listar roles (opcionalmente por tenantSlug)
   async getRoles(tenantSlug?: string) {
@@ -133,6 +151,67 @@ export class RolesPermisosService {
     });
 
     return role;
+  }
+
+  async seedDefaultRoles(tenantSlug: string) {
+    const tenant = await this.prisma.tenants.findUnique({ where: { slug: tenantSlug } });
+    if (!tenant) throw new NotFoundException('Tenant no encontrado');
+
+    const rolesData = [
+      {
+        name: 'ADMIN',
+        permissionCodes: [
+          'vacantes.create',
+          'vacantes.edit',
+          'vacantes.read',
+          'postulaciones.read',
+          'postulaciones.edit',
+          'candidatos.read',
+          'candidatos.create',
+          'candidatos.edit',
+        ],
+      },
+      {
+        name: 'RECLUTADOR',
+        permissionCodes: [
+          'vacantes.read',
+          'postulaciones.read',
+          'candidatos.read',
+        ],
+      },
+    ];
+
+    for (const { name, permissionCodes } of rolesData) {
+      // Crea el rol si no existe
+      const role = await this.prisma.roles.upsert({
+        where: { tenantId_name: { tenantId: tenant.id, name } },
+        update: {},
+        create: { tenantId: tenant.id, name },
+      });
+
+      // Filtrar permisos existentes
+      const existingPerms = await this.prisma.permisos.findMany({
+        where: { codigo: { in: permissionCodes } },
+        select: { id: true, codigo: true },
+      });
+
+      const encontrados = new Set(existingPerms.map(p => p.codigo));
+      const faltantes = permissionCodes.filter(code => !encontrados.has(code));
+      if (faltantes.length) {
+        console.warn(`⚠️  Permisos no encontrados (se omiten): ${faltantes.join(', ')}`);
+      }
+
+      // Asignar los permisos encontrados
+      await this.prisma.$transaction(
+        existingPerms.map(({ id }) =>
+          this.prisma.rolePermisos.upsert({
+            where: { roleId_permisoId: { roleId: role.id, permisoId: id } },
+            update: { allowed: true },
+            create: { roleId: role.id, permisoId: id, allowed: true },
+          })
+        )
+      );
+    }
   }
 
 }

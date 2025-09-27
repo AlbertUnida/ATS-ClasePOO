@@ -21,13 +21,18 @@ async function bootstrap() {
     .setTitle('ATS Api')
     .setDescription('API de reclutamiento multi-tenant')
     .setVersion('0.1.0')
+    .addCookieAuth('access_token', {
+      type: 'apiKey',
+      in: 'cookie',
+      name: 'access_token',
+    })
     // Bearer JWT para endpoints protegidos
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
       'access-token',
     )
     // Cookie refresh (si lo usas en /auth/refresh)
-    .addCookieAuth('refresh_token')
+    //.addCookieAuth('refresh_token')
     // Header para bootstrap (opcional)
     .addApiKey({ type: 'apiKey', name: 'X-Bootstrap-Token', in: 'header' }, 'bootstrap-token')
     .build();

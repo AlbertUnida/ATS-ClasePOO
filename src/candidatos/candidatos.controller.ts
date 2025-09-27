@@ -1,8 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CandidatosService } from './candidatos.service';
 import { CreateCandidatoDto } from './dto/create-candidato.dto';
 import { UpdateCandidatoDto } from './dto/update-candidato.dto';
+import { AdminOrSuperAdminGuard } from '../common/guards/superadmin.guard';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiCookieAuth } from '@nestjs/swagger';
 
 @ApiTags('candidatos')
 @Controller('candidatos')
@@ -10,7 +13,9 @@ export class CandidatosController {
   constructor(private readonly candidatosService: CandidatosService) { }
 
   @Post()
-  @ApiOperation({ summary: 'Registrar candidato (por tenantSlug)' })
+  @UseGuards(AuthGuard('jwt'), AdminOrSuperAdminGuard)
+  @ApiCookieAuth('access-token')
+  @ApiOperation({ summary: 'Crear candidato desde backend (uso interno)' })
   @ApiBody({
     type: CreateCandidatoDto,
     examples: {
@@ -45,15 +50,15 @@ export class CandidatosController {
     return this.candidatosService.create(dto);
   }
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Actualizar perfil de candidato' })
-  @ApiParam({ name: 'id', description: 'ID del candidato' })
-  @ApiBody({ type: UpdateCandidatoDto })
-  @ApiResponse({ status: 200, description: 'Candidato actualizado' })
-  @ApiResponse({ status: 404, description: 'Candidato no encontrado' })
-  @ApiResponse({ status: 409, description: 'Email ya está en uso en este tenant' })
-  update(@Param('id') id: string, @Body() dto: UpdateCandidatoDto) {
-    return this.candidatosService.update(id, dto);
-  }
+  // @Patch(':id')
+  // @ApiOperation({ summary: 'Actualizar perfil de candidato' })
+  // @ApiParam({ name: 'id', description: 'ID del candidato' })
+  // @ApiBody({ type: UpdateCandidatoDto })
+  // @ApiResponse({ status: 200, description: 'Candidato actualizado' })
+  // @ApiResponse({ status: 404, description: 'Candidato no encontrado' })
+  // @ApiResponse({ status: 409, description: 'Email ya está en uso en este tenant' })
+  // update(@Param('id') id: string, @Body() dto: UpdateCandidatoDto) {
+  //   return this.candidatosService.update(id, dto);
+  // }
 
 }

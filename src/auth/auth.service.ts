@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 import * as argon2 from 'argon2';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -14,26 +15,63 @@ export class AuthService {
 
   // Login para cualquier usuario (incluye SUPERADMIN en tenant 'root')
   async validateLogin(email: string, password: string, tenantSlug?: string, fallbackTenantSlug?: string) {
-    const slug = tenantSlug ?? fallbackTenantSlug ?? 'root';
+    const emailLower = email.toLowerCase();
+    const slug = tenantSlug ?? fallbackTenantSlug;
+
+    // 1) Si vino slug → login directo en ese tenant
+    if (slug) return this.tryLoginOnTenant(emailLower, password, slug);
+
+    // 2) Intento SUPERADMIN en root (permite que el superadmin no pase slug)
+    const root = await this.prisma.tenants.findUnique({ where: { slug: 'root' } });
+    if (root) {
+      const uRoot = await this.prisma.usuarios.findFirst({
+        where: { tenantId: root.id, email: emailLower, active: true },
+        include: { roles: { include: { role: true } } },
+      });
+      if (uRoot && await argon2.verify(uRoot.password, password)) {
+        const roles = uRoot.roles.map(r => r.role.name);
+        if (roles.includes('SUPERADMIN')) {
+          return this.buildPayload(uRoot, root, roles, true);
+        }
+      }
+    }
+
+    // 3) Conveniencia: email pertenece a un único tenant activo
+    const matches = await this.prisma.usuarios.findMany({
+      where: { email: emailLower, active: true },
+      select: { tenantId: true },
+      take: 2, // clave: no necesitamos más de 2 para saber si es único
+    });
+    const tenantIds = Array.from(new Set(matches.map(m => m.tenantId)));
+    if (tenantIds.length === 1) {
+      const t = await this.prisma.tenants.findUnique({ where: { id: tenantIds[0] } });
+      if (t) return this.tryLoginOnTenant(emailLower, password, t.slug);
+    }
+
+    // 4) Ambiguo o inexistente → exigir tenant
+    throw new BadRequestException('Debe indicar la empresa (tenant).');
+  }
+
+  // Igual que la tuya
+  private async tryLoginOnTenant(email: string, password: string, slug: string) {
     const tenant = await this.prisma.tenants.findUnique({ where: { slug } });
     if (!tenant) throw new BadRequestException('Tenant inválido');
 
     const user = await this.prisma.usuarios.findFirst({
-      where: { email: email.toLowerCase(), tenantId: tenant.id, active: true },
+      where: { email, tenantId: tenant.id, active: true },
       include: { roles: { include: { role: true } } },
     });
-    if (!user) throw new UnauthorizedException('Credenciales Invalidas');
-
-    const ok = await argon2.verify(user.password, password);
-    if (!ok) throw new UnauthorizedException('Credenciales Invalidas');
-
+    if (!user || !(await argon2.verify(user.password, password))) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
     const roles = user.roles.map(r => r.role.name);
     const isSuperAdmin = roles.includes('SUPERADMIN') && tenant.slug === 'root';
+    return this.buildPayload(user, tenant, roles, isSuperAdmin);
+  }
 
-    // Si luego añadís permisos granulares, acá los cargarías
+  private buildPayload(user: any, tenant: any, roles: string[], isSuperAdmin: boolean) {
     const perms: string[] = isSuperAdmin ? ['*'] : [];
-
-    const payload = { sub: user.id, tid: tenant.id, roles, perms, isSuperAdmin };
+    const payload = { sub: user.id, tid: tenant.id, roles, perms, isSuperAdmin, email: user.email, tenant: tenant.slug };
     return { user, tenant, payload };
   }
 
@@ -51,7 +89,7 @@ export class AuthService {
       secure: COOKIE_SECURE,
       sameSite: COOKIE_SECURE ? ('none' as const) : ('lax' as const),
       domain: COOKIE_DOMAIN,
-      path: '/auth',
+      path: '/',
       maxAge: maxAgeMs,
     };
   }
@@ -137,12 +175,17 @@ export class AuthService {
     name: string;
     email: string;
     password: string;
-    tenantSlug: string;
+    tenantSlug?: string;
     roleId?: string;
     roleName?: string;
-    candidatoId?: string;            // 👈 NUEVO
+    candidatoId?: string;
   }) {
-    const tenant = await this.prisma.tenants.findUnique({ where: { slug: dto.tenantSlug } });
+    // ✅ 1) exigir y normalizar el slug
+    const slug = dto.tenantSlug?.toString().trim().toLowerCase();
+    if (!slug) throw new BadRequestException('tenantSlug es requerido');
+
+    // ✅ 2) buscar el tenant por el slug ya normalizado
+    const tenant = await this.prisma.tenants.findUnique({ where: { slug } });
     if (!tenant) throw new BadRequestException('Tenant inválido');
 
     // 🔎 Validación opcional del candidato
@@ -152,9 +195,8 @@ export class AuthService {
       if (!cand || cand.tenantId !== tenant.id) {
         throw new BadRequestException('Candidato inválido para este tenant');
       }
-      // Evita doble vínculo (tu unique @@unique([tenantId, candidatoId]) igual lo enforcea)
       const alreadyLinked = await this.prisma.usuarios.findFirst({
-        where: { tenantId: tenant.id, candidatoId: dto.candidatoId }
+        where: { tenantId: tenant.id, candidatoId: dto.candidatoId },
       });
       if (alreadyLinked) throw new ConflictException('Este candidato ya tiene un usuario');
       candidateIdToLink = cand.id;
@@ -167,7 +209,7 @@ export class AuthService {
       if (!role || role.tenantId !== tenant.id) throw new BadRequestException('Rol inválido para este tenant');
       if (role.name === 'SUPERADMIN') throw new ForbiddenException('SUPERADMIN se crea solo por flujo dedicado');
     } else {
-      const normalized = (dto.roleName ?? 'CANDIDATO').trim().toUpperCase().replace(/-/g, '_'); // 👈 default
+      const normalized = (dto.roleName ?? 'CANDIDATO').trim().toUpperCase().replace(/-/g, '_');
       if (normalized === 'SUPERADMIN') throw new ForbiddenException('SUPERADMIN se crea solo por flujo dedicado');
       role = await this.prisma.roles.upsert({
         where: { tenantId_name: { tenantId: tenant.id, name: normalized } },
@@ -187,7 +229,7 @@ export class AuthService {
           email,
           password: hash,
           active: true,
-          candidatoId: candidateIdToLink,   // 👈 enlaza usuario ⇄ candidato
+          candidatoId: candidateIdToLink,
         },
       });
 
@@ -204,6 +246,15 @@ export class AuthService {
       if (e.code === 'P2003') throw new BadRequestException('FK inválida (revisa candidatoId/tenant)');
       throw e;
     }
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    const saltRounds = 10;
+    return bcrypt.hash(password, saltRounds);
+  }
+
+  async comparePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+    return bcrypt.compare(plainPassword, hashedPassword);
   }
 
 }

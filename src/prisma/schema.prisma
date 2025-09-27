@@ -20,18 +20,16 @@ model Tenants {
   status    String   @default("active")
   createdAt DateTime @default(now())
 
-  usuarios                      Usuarios[]
-  roles                         Roles[] // <-- agregar
-  cargos                        Cargos[]
-  vacantes                      Vacantes[]
-  candidatos                    Candidatos[]
-  postulaciones                 Postulaciones[]
-  eventos                       EventoPostulaciones[] // <-- agregar
-  entrevistas                   Entrevistas[] // <-- agregar
-  feedbacks                     Feedback[] // <-- agregar
-  PerfilCandidato               PerfilCandidato[]
-  Formularios                   Formularios[]
-  RespuestasFormularioCandidato RespuestasFormularioCandidato[]
+  usuarios      Usuarios[]
+  roles         Roles[] // <-- agregar
+  cargos        Cargos[]
+  vacantes      Vacantes[]
+  candidatos    Candidatos[]
+  postulaciones Postulaciones[]
+  eventos       EventoPostulaciones[] // <-- agregar
+  entrevistas   Entrevistas[] // <-- agregar
+  feedbacks     Feedback[] // <-- agregar
+  AuditLog      AuditLog[]
 }
 
 model Usuarios {
@@ -47,16 +45,16 @@ model Usuarios {
 
   // vínculo opcional al registro de candidato (ver ajuste opcional de FK compuesta)
   candidatoId String?
-  candidato   Candidatos? @relation(fields: [candidatoId], references: [id])
+  candidato   Candidatos? @relation(fields: [candidatoId], references: [id], onDelete: SetNull)
 
-  roles                UsuarioRoles[]
-  EventoPostulaciones  EventoPostulaciones[]
-  AsistentesEntrevista AsistentesEntrevista[]
-  UsuarioPermisos      UsuarioPermisos[]
+  roles               UsuarioRoles[]
+  EventoPostulaciones EventoPostulaciones[]
+  UsuarioPermisos     UsuarioPermisos[]
 
   @@unique([tenantId, email])
   @@unique([tenantId, candidatoId]) // 1:1 cuando es candidato (permite null)
   @@index([tenantId])
+  @@index([email])
 }
 
 model Roles {
@@ -92,29 +90,64 @@ model Cargos {
   @@index([tenantId])
 }
 
+// model Vacantes {
+//   id                  String   @id @default(cuid())
+//   tenantId            String
+//   tenant              Tenants  @relation(fields: [tenantId], references: [id])
+//   cargoId             String
+//   cargo               Cargos   @relation(fields: [cargoId], references: [id])
+//   ubicacion           String?
+//   tipoContrato        String?
+//   estado              String   @default("abierta")
+//   flujoAprobacionJson String?
+//   createdAt           DateTime @default(now())
+//   updatedAt           DateTime @updatedAt
+
+//   postulaciones Postulaciones[]
+//   Formularios   Formularios[]
+
+//   @@index([tenantId, cargoId, estado])
+// }
+
 model Vacantes {
-  id                  String   @id @default(cuid())
-  tenantId            String
-  tenant              Tenants  @relation(fields: [tenantId], references: [id])
-  cargoId             String
-  cargo               Cargos   @relation(fields: [cargoId], references: [id])
-  ubicacion           String?
-  tipoContrato        String?
-  estado              String   @default("abierta")
+  id           String    @id @default(cuid())
+  tenantId     String
+  tenant       Tenants   @relation(fields: [tenantId], references: [id])
+  cargoId      String
+  cargo        Cargos    @relation(fields: [cargoId], references: [id])
+  ubicacion    String?
+  tipoContrato String?
+  estado       String    @default("abierta")
+  visibilidad  String    @default("PUBLICA") // PUBLICA | PRIVADA
+  publicSlug   String?   @unique
+  resumen      String?
+  descripcion  String?
+  publishedAt  DateTime?
+  expiresAt    DateTime?
+
   flujoAprobacionJson String?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
+  // --- Auditoría mínima ---
+  deletedAt          DateTime?
+  // (Opcional) autoría
+  createdByUserId    String?
+  updatedByUserId    String?
+  createdByAccountId String?
+  updatedByAccountId String?
+
   postulaciones Postulaciones[]
-  Formularios   Formularios[]
 
   @@index([tenantId, cargoId, estado])
+  @@index([tenantId, estado, visibilidad, createdAt])
+  @@index([deletedAt])
 }
 
 model Candidatos {
   id         String   @id @default(cuid())
-  tenantId   String
-  tenant     Tenants  @relation(fields: [tenantId], references: [id])
+  tenantId   String?
+  tenant     Tenants?  @relation(fields: [tenantId], references: [id])
   nombre     String
   email      String
   telefono   String?
@@ -123,12 +156,24 @@ model Candidatos {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt // <--- NUEVO
 
-  postulaciones   Postulaciones[]
-  PerfilCandidato PerfilCandidato?
-  Usuarios        Usuarios[]
+  // --- Auditoría mínima ---
+  deletedAt          DateTime?
+  // (Opcional) autoría
+  createdByUserId    String?
+  updatedByUserId    String?
+  createdByAccountId String?
+  updatedByAccountId String?
+
+  postulaciones Postulaciones[]
+  Usuarios      Usuarios[]
+
+  cuentaId String?
+  cuenta   CandidatoCuentas? @relation(fields: [cuentaId], references: [id])
 
   @@unique([tenantId, email]) // <--- cambia index -> unique
   @@index([tenantId]) // <--- NUEVO
+  @@index([cuentaId])
+  @@index([deletedAt]) // útil para filtrar activos
 }
 
 model Postulaciones {
@@ -139,21 +184,34 @@ model Postulaciones {
   vacante          Vacantes   @relation(fields: [vacanteId], references: [id])
   candidatoId      String
   candidato        Candidatos @relation(fields: [candidatoId], references: [id])
-  estadoActual     String     @default("CREADA")
+
+  estado           String     @default("postulado") // postulado | en_proceso | descartado | contratado
   fuente           String?
-  createdAt        DateTime   @default(now())
+  mensaje          String? // NUEVO
+  cvExtraUrl       String? // NUEVO
+
   matchScore       Float?
   matchDetailsJson String?
-  updatedAt        DateTime   @updatedAt
 
-  eventos                       EventoPostulaciones[]
-  entrevistas                   Entrevistas[]
-  feedbacks                     Feedback[]
-  RespuestasFormularioCandidato RespuestasFormularioCandidato[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  deletedAt        DateTime?
+
+  // Autoría
+  createdByUserId    String?
+  updatedByUserId    String?
+  createdByAccountId String?
+  updatedByAccountId String?
+
+  // Relaciones adicionales
+  eventos     EventoPostulaciones[]
+  entrevistas Entrevistas[]
+  feedbacks   Feedback[]
 
   @@unique([vacanteId, candidatoId])
   @@index([tenantId, vacanteId, candidatoId])
-  @@index([tenantId, estadoActual]) // <--- NUEVO (listados por etapa)
+  @@index([tenantId, estado])
+  @@index([deletedAt])
 }
 
 model EventoPostulaciones {
@@ -173,18 +231,17 @@ model EventoPostulaciones {
 }
 
 model Entrevistas {
-  id                   String                 @id @default(cuid())
-  tenantId             String
-  tenant               Tenants                @relation(fields: [tenantId], references: [id])
-  postulacionId        String
-  postulacion          Postulaciones          @relation(fields: [postulacionId], references: [id], onDelete: Cascade)
-  tipo                 String
-  inicioTs             DateTime
-  finTs                DateTime
-  canal                String?
-  resultado            String?
-  notas                String?
-  AsistentesEntrevista AsistentesEntrevista[]
+  id            String        @id @default(cuid())
+  tenantId      String
+  tenant        Tenants       @relation(fields: [tenantId], references: [id])
+  postulacionId String
+  postulacion   Postulaciones @relation(fields: [postulacionId], references: [id], onDelete: Cascade)
+  tipo          String
+  inicioTs      DateTime
+  finTs         DateTime
+  canal         String?
+  resultado     String?
+  notas         String?
 
   @@index([tenantId, postulacionId])
 }
@@ -205,169 +262,14 @@ model Feedback {
   @@index([tenantId, postulacionId])
 }
 
-model PerfilCandidato {
-  id           String                 @id @default(cuid())
-  tenantId     String
-  tenant       Tenants                @relation(fields: [tenantId], references: [id])
-  candidatoId  String                 @unique
-  candidato    Candidatos             @relation(fields: [candidatoId], references: [id])
-  resumen      String?
-  linkedin     String?
-  portfolio    String?
-  updatedAt    DateTime               @updatedAt
-  // Relaciones
-  educaciones  EducacionCandidato[]
-  experiencias ExperienciaCandidato[]
-  habilidades  HabilidadCandidato[]
-  idiomas      IdiomaCandidato[]
-}
+model CandidatoCuentas {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-model EducacionCandidato {
-  id          String          @id @default(cuid())
-  perfilId    String
-  perfil      PerfilCandidato @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  institucion String
-  titulo      String
-  inicio      DateTime?
-  fin         DateTime?
-  enCurso     Boolean         @default(false)
-}
-
-model ExperienciaCandidato {
-  id              String          @id @default(cuid())
-  perfilId        String
-  perfil          PerfilCandidato @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  empresa         String
-  cargo           String
-  inicio          DateTime?
-  fin             DateTime?
-  descripcion     String?
-  tecnologiasJson String?
-}
-
-enum NivelHabilidad {
-  basico
-  intermedio
-  avanzado
-  experto
-}
-
-model HabilidadCandidato {
-  id       String          @id @default(cuid())
-  perfilId String
-  perfil   PerfilCandidato @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  skill    String
-  nivel    NivelHabilidad
-  anios    Int?
-
-  @@index([perfilId, skill])
-}
-
-enum NivelIdioma {
-  A1
-  A2
-  B1
-  B2
-  C1
-  C2
-  NATIVE
-}
-
-model IdiomaCandidato {
-  id       String          @id @default(cuid())
-  perfilId String
-  perfil   PerfilCandidato @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  idioma   String
-  nivel    NivelIdioma
-}
-
-// ---------- FORMULARIOS CONFIGURABLES Y RESPUESTAS ----------
-model Formularios {
-  id        String      @id @default(cuid())
-  tenantId  String
-  tenant    Tenants     @relation(fields: [tenantId], references: [id])
-  nombre    String
-  version   Int         @default(1)
-  alcance   String // 'tenant' | 'vacante'
-  vacanteId String?
-  vacante   Vacantes?   @relation(fields: [vacanteId], references: [id])
-  isActive  Boolean     @default(true)
-  createdAt DateTime    @default(now())
-  preguntas Preguntas[]
-
-  @@index([tenantId, alcance, vacanteId])
-}
-
-enum TipoPregunta {
-  SINGLE_CHOICE
-  MULTI_CHOICE
-  YES_NO
-  NUMBER
-  TEXT_SHORT
-  TEXT_LONG
-  DATE
-  FILE
-}
-
-model Preguntas {
-  id                String             @id @default(cuid())
-  formularioId      String
-  formulario        Formularios        @relation(fields: [formularioId], references: [id], onDelete: Cascade)
-  seccion           String?
-  orden             Int
-  texto             String
-  tipo              TipoPregunta
-  requerida         Boolean            @default(false)
-  opciones          OpcionesPregunta[]
-  visibilidadIfJson String? // lógica condicional simple (opcional)
-}
-
-model OpcionesPregunta {
-  id         String    @id @default(cuid())
-  preguntaId String
-  pregunta   Preguntas @relation(fields: [preguntaId], references: [id], onDelete: Cascade)
-  etiqueta   String
-  valor      String // clave estable para métricas
-  orden      Int
-}
-
-model RespuestasFormularioCandidato {
-  id                     String        @id @default(cuid())
-  tenantId               String
-  tenant                 Tenants       @relation(fields: [tenantId], references: [id])
-  postulacionId          String
-  postulacion            Postulaciones @relation(fields: [postulacionId], references: [id], onDelete: Cascade)
-  formularioId           String
-  versionFormulario      Int
-  formularioSnapshotJson String?
-  respuestas             Respuestas[]
-
-  @@unique([postulacionId, formularioId, versionFormulario])
-}
-
-model Respuestas {
-  id          String                        @id @default(cuid())
-  rfcId       String
-  rfc         RespuestasFormularioCandidato @relation(fields: [rfcId], references: [id], onDelete: Cascade)
-  preguntaId  String
-  // valores soportados por tipo de pregunta
-  valorTexto  String?
-  valorNumero Float?
-  valorFecha  DateTime?
-  valoresJson String? // para MULTI_CHOICE
-  opcionValor String? // para SINGLE_CHOICE/YES_NO
-
-  @@index([rfcId, preguntaId])
-}
-
-// ---------- ASISTENTES DE ENTREVISTA (opcional) ----------
-model AsistentesEntrevista {
-  entrevistaId String
-  usuarioId    String
-  entrevista   Entrevistas @relation(fields: [entrevistaId], references: [id])
-  usuario      Usuarios    @relation(fields: [usuarioId], references: [id])
-
-  @@id([entrevistaId, usuarioId])
+  candidatos Candidatos[]
 }
 
 model Permisos {
@@ -400,4 +302,34 @@ model UsuarioPermisos {
 
   @@id([userId, permisoId])
   @@index([permisoId])
+}
+
+model AuditLog {
+  id String   @id @default(cuid())
+  ts DateTime @default(now())
+
+  // multi-tenant (opcional)
+  tenantId String?
+  tenant   Tenants? @relation(fields: [tenantId], references: [id])
+
+  // actor (uno u otro; ambos opcionales)
+  actorUserId    String?
+  actorAccountId String?
+  actorEmail     String?
+
+  // qué pasó
+  action   String // "CREATE" | "UPDATE" | "DELETE" | "LOGIN" | "LOGOUT" | ...
+  entity   String // "Vacantes" | "Candidatos" | ...
+  entityId String
+  note     String? // breve descripción (opcional)
+
+  // metadatos útiles (opcionales)
+  ip        String?
+  userAgent String?
+  path      String?
+
+  @@index([tenantId, entity, entityId, ts])
+  @@index([actorUserId, ts])
+  @@index([actorAccountId, ts])
+  @@index([action, ts])
 }

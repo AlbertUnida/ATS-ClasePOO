@@ -1,28 +1,34 @@
-import { Controller, Get, Post, Body, Query, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Req, Query, Patch, Param, UseGuards, Delete } from '@nestjs/common';
 import { CargosService } from './cargos.service';
 import { CreateCargoDto } from './dto/create-cargo.dto';
 import { UpdateCargoDto } from './dto/update-cargo.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam, ApiBody, ApiCookieAuth } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
+import { AdminReclutadorOrSuperAdminGuard } from '../common/guards/superadmin.guard';
 
 @ApiTags('cargos')
 @Controller('cargos')
 export class CargosController {
-  constructor(private readonly cargos: CargosService) {}
+  constructor(private readonly cargos: CargosService) { }
 
   @Post()
+  @UseGuards(AuthGuard('jwt'), AdminReclutadorOrSuperAdminGuard)
+  @ApiCookieAuth('access-token')
   @ApiOperation({ summary: 'Crear cargo (requiere tenantSlug)' })
   @ApiBody({ type: CreateCargoDto })
   @ApiResponse({ status: 201, description: 'Cargo creado' })
-  create(@Body() dto: CreateCargoDto) {
-    return this.cargos.create(dto);
+  create(@Body() dto: CreateCargoDto, @Req() req: any) {
+    return this.cargos.create(dto, req.user);
   }
 
   @Get()
+  @UseGuards(AuthGuard('jwt'), AdminReclutadorOrSuperAdminGuard)
+  @ApiCookieAuth('access-token')
   @ApiOperation({ summary: 'Listar cargos (opcional: filtrar por ?tenant=slug)' })
   @ApiQuery({ name: 'tenant', required: false, description: 'Slug del tenant para filtrar' })
-  list(@Query('tenant') tenant?: string) {
+  list(@Query('tenant') tenant: string, @Req() req: any) {
     const t = tenant?.trim().toLowerCase();
-    return t ? this.cargos.listByTenant(t) : this.cargos.findAll();
+    return t ? this.cargos.listByTenant(t, req.user) : this.cargos.findAll();
   }
 
   @Get(':id')
