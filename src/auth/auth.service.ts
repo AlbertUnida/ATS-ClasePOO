@@ -14,20 +14,49 @@ export class AuthService {
   constructor(private prisma: PrismaService, private jwt: JwtService) { }
 
   // Login para cualquier usuario (incluye SUPERADMIN en tenant 'root')
-  async validateLogin(email: string, password: string, tenantSlug?: string, fallbackTenantSlug?: string) {
+  async validateLogin(
+    email: string,
+    password: string,
+    tenantSlug?: string,
+    fallbackTenantSlug?: string
+  ) {
     const emailLower = email.toLowerCase();
     const slug = tenantSlug ?? fallbackTenantSlug;
 
-    // 1) Si vino slug → login directo en ese tenant
-    if (slug) return this.tryLoginOnTenant(emailLower, password, slug);
+    // ========== 1) Slug presente → intento login directo ==========
+    if (slug) {
+      const tenant = await this.prisma.tenants.findUnique({ where: { slug } });
+      if (!tenant) {
+        throw new BadRequestException('Empresa (tenant) inválida.');
+      }
 
-    // 2) Intento SUPERADMIN en root (permite que el superadmin no pase slug)
+      const user = await this.prisma.usuarios.findFirst({
+        where: { email: emailLower, tenantId: tenant.id, active: true },
+        include: { roles: { include: { role: true } } },
+      });
+
+      if (!user) {
+        throw new BadRequestException('Usuario no registrado.');
+      }
+
+      const passwordValid = await argon2.verify(user.password, password);
+      if (!passwordValid) {
+        throw new BadRequestException('Correo o contraseña incorrectos.');
+      }
+
+      const roles = user.roles.map(r => r.role.name);
+
+      if (slug) return this.tryLoginOnTenant(emailLower, password, slug);
+    }
+
+    // ========== 2) SUPERADMIN login en root tenant ==========
     const root = await this.prisma.tenants.findUnique({ where: { slug: 'root' } });
     if (root) {
       const uRoot = await this.prisma.usuarios.findFirst({
         where: { tenantId: root.id, email: emailLower, active: true },
         include: { roles: { include: { role: true } } },
       });
+
       if (uRoot && await argon2.verify(uRoot.password, password)) {
         const roles = uRoot.roles.map(r => r.role.name);
         if (roles.includes('SUPERADMIN')) {
@@ -36,19 +65,41 @@ export class AuthService {
       }
     }
 
-    // 3) Conveniencia: email pertenece a un único tenant activo
+    // ========== 3) Email pertenece a un único tenant activo ==========
     const matches = await this.prisma.usuarios.findMany({
       where: { email: emailLower, active: true },
       select: { tenantId: true },
-      take: 2, // clave: no necesitamos más de 2 para saber si es único
+      take: 2,
     });
+
     const tenantIds = Array.from(new Set(matches.map(m => m.tenantId)));
     if (tenantIds.length === 1) {
-      const t = await this.prisma.tenants.findUnique({ where: { id: tenantIds[0] } });
-      if (t) return this.tryLoginOnTenant(emailLower, password, t.slug);
+      const tenant = await this.prisma.tenants.findUnique({ where: { id: tenantIds[0] } });
+
+      if (tenant) {
+        const user = await this.prisma.usuarios.findFirst({
+          where: { tenantId: tenant.id, email: emailLower, active: true },
+          include: { roles: { include: { role: true } } },
+        });
+
+        if (!user) {
+          throw new BadRequestException('Usuario no registrado.');
+        }
+
+        const passwordValid = await argon2.verify(user.password, password);
+        if (!passwordValid) {
+          throw new BadRequestException('Correo o contraseña incorrectos.');
+        }
+
+        const roles = user.roles.map(r => r.role.name);
+
+        // ✅ Usar slug real del tenant obtenido
+        return this.tryLoginOnTenant(emailLower, password, tenant.slug);
+      }
+
     }
 
-    // 4) Ambiguo o inexistente → exigir tenant
+    // ========== 4) Ambiguo, no se encontró, o múltiples tenants ==========
     throw new BadRequestException('Debe indicar la empresa (tenant).');
   }
 

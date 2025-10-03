@@ -6,7 +6,7 @@ import { CandidateLoginDto } from './dto/candidate-login.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 
-@ApiTags('Auth - Candidatos')
+@ApiTags('auth - candidatos')
 @Controller('auth/candidatos')
 export class AuthCandidatosController {
     constructor(private readonly candidatosService: CandidatosService) { }

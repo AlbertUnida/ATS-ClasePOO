@@ -39,11 +39,54 @@ export class TenantsService {
     }
   }
 
-  findAll() {
-    return this.prisma.tenants.findMany({
-      orderBy: { createdAt: 'desc' },
-      // take/skip si quieres paginar rápido
-    });
+  // tenants.service.ts
+  async findAll(params: {
+    page?: number;
+    limit?: number;
+    name?: string;
+    slug?: string;
+    status?: string;
+  }) {
+    const {
+      page = 1,
+      limit = 10,
+      name,
+      slug,
+      status,
+    } = params;
+
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+
+    if (name) {
+      where.name = { contains: name, mode: 'insensitive' };
+    }
+
+    if (slug) {
+      where.slug = { contains: slug, mode: 'insensitive' };
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.tenants.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.tenants.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   // El slug es una versión simplificada, legible y "URL-amigable" de un nombre o título. 

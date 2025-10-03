@@ -1,10 +1,11 @@
 // src/tenants/tenants.controller.ts
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, Headers, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Query, Post, UseGuards, Headers, HttpCode, HttpStatus } from '@nestjs/common';
 import { TenantsService } from './tenants.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { SuperAdminGuard } from '../common/guards/superadmin.guard';
 import { formatAsuncion } from '../common/utils/time.util';
 import { AuthGuard } from '@nestjs/passport';
+import { FilterTenantsDto } from './dto/filter-tenants.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody, ApiParam, ApiCookieAuth } from '@nestjs/swagger';
 //import { UpdateTenantDto } from './dto/update-tenant.dto';
 
@@ -30,9 +31,9 @@ export class TenantsController {
   @UseGuards(AuthGuard('jwt'), SuperAdminGuard)
   @ApiCookieAuth('access-token')
   @ApiOperation({ summary: 'Listar todos los tenants' })
-  @ApiResponse({ status: 200, description: 'Lista de tenants' })
-  findAll() {
-    return this.tenants.findAll();
+  @ApiResponse({ status: 200, description: 'Lista de tenants paginada y filtrada' })
+  findAll(@Query() query: FilterTenantsDto) {
+    return this.tenants.findAll(query);
   }
 
   @Get(':slug')

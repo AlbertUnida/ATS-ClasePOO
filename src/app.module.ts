@@ -10,9 +10,10 @@ import { CandidatosModule } from './candidatos/candidatos.module';
 import { CargosModule } from './cargos/cargos.module';
 import { VacantesModule } from './vacantes/vacantes.module';
 import { PostulacionesModule } from './postulaciones/postulaciones.module';
+import { EntrevistasModule } from './entrevistas/entrevistas.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, TenantsModule, RolesPermisosModule, CandidatosModule, CargosModule, VacantesModule, PostulacionesModule],
+  imports: [PrismaModule, AuthModule, TenantsModule, RolesPermisosModule, CandidatosModule, CargosModule, VacantesModule, PostulacionesModule, EntrevistasModule],
   controllers: [AppController],
   providers: [AppService],
 })
