@@ -4,9 +4,9 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 
 export class CreateCargoDto {
-    @ApiProperty() @IsString() @IsNotEmpty()
-    @Transform(({ value }) => value?.toString().trim().toLowerCase())
-    tenantSlug: string;
+    // @ApiProperty() @IsString() @IsNotEmpty()
+    // @Transform(({ value }) => value?.toString().trim().toLowerCase())
+    // tenantSlug: string;
 
     @ApiProperty() @IsString() @IsNotEmpty()
     @Transform(({ value }) => value?.toString().trim())

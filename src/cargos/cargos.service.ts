@@ -13,18 +13,26 @@ export class CargosService {
   }
 
   async create(dto: CreateCargoDto, user: any) {
-    if (!user.roles.includes('SUPERADMIN') && user.tenantSlug !== dto.tenantSlug) {
+    // Para todos los usuarios, usás el tenant del token (más seguro)
+    const tenantSlug = user.roles.includes('SUPERADMIN') ? user.tenant : user.tenant;
+
+    if (!tenantSlug) {
       throw new ForbiddenException('No tienes acceso a este tenant');
     }
 
-    const tenant = await this.prisma.tenants.findUnique({ where: { slug: dto.tenantSlug } });
+    const tenant = await this.prisma.tenants.findUnique({
+      where: { slug: tenantSlug },
+    });
+
     if (!tenant) throw new NotFoundException('Tenant no encontrado');
 
     const cargo = await this.prisma.cargos.create({
       data: {
         tenantId: tenant.id,
         nombre: dto.nombre,
-        competenciasJson: dto.competencias ? JSON.stringify(dto.competencias) : undefined,
+        competenciasJson: dto.competencias
+          ? JSON.stringify(dto.competencias)
+          : undefined,
       },
     });
 
@@ -32,15 +40,18 @@ export class CargosService {
   }
 
   async listByTenant(tenantSlug: string, user: any) {
-    if (!user.roles.includes('SUPERADMIN') && user.tenantSlug !== tenantSlug) {
+    if (!user.roles.includes('SUPERADMIN') && user.tenant !== tenantSlug.toLowerCase()) {
       throw new ForbiddenException('No tienes acceso a este tenant');
     }
 
-    const t = await this.prisma.tenants.findUnique({ where: { slug: tenantSlug } });
-    if (!t) throw new NotFoundException('Tenant no encontrado');
+    const tenant = await this.prisma.tenants.findUnique({
+      where: { slug: tenantSlug },
+    });
+
+    if (!tenant) throw new NotFoundException('Tenant no encontrado');
 
     const rows = await this.prisma.cargos.findMany({
-      where: { tenantId: t.id },
+      where: { tenantId: tenant.id },
       orderBy: { createdAt: 'desc' },
     });
 

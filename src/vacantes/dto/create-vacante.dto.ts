@@ -4,9 +4,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer'
 
 export class CreateVacanteDto {
-  @ApiProperty() @IsString() @IsNotEmpty()
-  @Transform(({ value }) => value?.toString().trim().toLowerCase())
-  tenantSlug: string;
 
   @ApiProperty({ description: 'ID de un cargo existente' })
   @IsString() @IsNotEmpty()

@@ -7,18 +7,22 @@ export class VacantesService {
   constructor(private prisma: PrismaService) { }
 
   async create(dto: CreateVacanteDto, user: any) {
-    if (!user.roles.includes('SUPERADMIN') && user.tenantSlug !== dto.tenantSlug) {
-      throw new ForbiddenException('No tienes acceso a este tenant');
+    const isSuperAdmin = user.roles.includes('SUPERADMIN');
+
+    // 🔍 Obtener el cargo para validar el tenant
+    const cargo = await this.prisma.cargos.findUnique({ where: { id: dto.cargoId } });
+    if (!cargo) {
+      throw new BadRequestException('cargoId inválido');
     }
 
-    const tenant = await this.prisma.tenants.findUnique({ where: { slug: dto.tenantSlug } });
+    const tenant = await this.prisma.tenants.findUnique({ where: { id: cargo.tenantId } });
     if (!tenant) throw new NotFoundException('Tenant no encontrado');
 
-    const cargo = await this.prisma.cargos.findUnique({ where: { id: dto.cargoId } });
-    if (!cargo || cargo.tenantId !== tenant.id) {
-      throw new BadRequestException('cargoId inválido para este tenant');
+    // 🔐 Verificar si el usuario tiene permiso sobre ese tenant
+    if (!isSuperAdmin && user.tenant !== tenant.slug) {
+      throw new ForbiddenException('No tienes acceso a este tenant');
     }
-
+    
     const estado = (dto.estado ?? 'abierta') as 'abierta' | 'pausada' | 'cerrada';
 
     const vacante = await this.prisma.vacantes.create({
@@ -52,7 +56,9 @@ export class VacantesService {
 
 
   async list(tenantSlug: string, user: any, estado?: string) {
-    if (!user.roles.includes('SUPERADMIN') && user.tenantSlug !== tenantSlug) {
+    const userTenantSlug = user.tenant;
+
+    if (!user.roles.includes('SUPERADMIN') && userTenantSlug !== tenantSlug) {
       throw new ForbiddenException('No tienes acceso a este tenant');
     }
 

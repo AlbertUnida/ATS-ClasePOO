@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Req, Query, Patch, Param, UseGuards, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Req, Query, Patch, Param, UseGuards, Delete, ForbiddenException } from '@nestjs/common';
 import { CargosService } from './cargos.service';
 import { CreateCargoDto } from './dto/create-cargo.dto';
 import { UpdateCargoDto } from './dto/update-cargo.dto';
@@ -28,8 +28,17 @@ export class CargosController {
   @ApiQuery({ name: 'tenant', required: false, description: 'Slug del tenant para filtrar' })
   list(@Query('tenant') tenant: string, @Req() req: any) {
     const t = tenant?.trim().toLowerCase();
-    return t ? this.cargos.listByTenant(t, req.user) : this.cargos.findAll();
+
+    if (!t && !req.user.roles.includes('SUPERADMIN')) {
+      // ⚠️ Solo el SUPERADMIN puede listar todos
+      throw new ForbiddenException('Solo el superadmin puede ver todos los cargos');
+    }
+
+    return t
+      ? this.cargos.listByTenant(t, req.user)
+      : this.cargos.findAll(); // Solo superadmin puede llegar acá
   }
+
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un cargo por id' })

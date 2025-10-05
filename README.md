@@ -332,3 +332,30 @@ hashPassword()	Hashear al registrar
 comparePassword()	Verificar al loguear
 generateToken()	Crear JWT para frontend
 validateUserByToken()	Para @UseGuards() con JWT
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+fecha 04/10/2025
+
+
+hola, estoy desarrollando un backend. api con nestjs + prisma y mysql, y docker, ya va tomando forma dicha api, es para un sistema de reclutamiento, con un enfoque multiempresa, pero aun tengo algunos ajsuste que pulir, pero quiero que me ayudes o quiero enfocar en la idea general, asi tengo la estructura --- /src# ll drwxr-xr-x 12 root root 4096 Sep 28 19:33 ./ drwxr-xr-x 8 root root 4096 Oct 3 11:30 ../ -rw-r--r-- 1 root root 89 Aug 31 10:38 .gitignore -rw-r--r-- 1 root root 639 Aug 31 10:10 app.controller.spec.ts -rw-r--r-- 1 root root 315 Sep 15 11:53 app.controller.ts -rw-r--r-- 1 root root 1226 Sep 28 19:33 app.module.ts -rw-r--r-- 1 root root 152 Sep 7 13:42 app.service.ts drwxr-xr-x 4 root root 4096 Sep 14 17:28 auth/ drwxr-xr-x 4 root root 4096 Sep 25 11:50 candidatos/ drwxr-xr-x 4 root root 4096 Sep 19 10:41 cargos/ drwxr-xr-x 6 root root 4096 Sep 14 15:49 common/ drwxr-xr-x 4 root root 4096 Sep 28 19:33 entrevistas/ -rw-r--r-- 1 root root 1575 Sep 23 14:53 main.ts drwxr-xr-x 4 root root 4096 Sep 19 11:39 postulaciones/ drwxr-xr-x 3 root root 4096 Sep 14 17:33 prisma/ drwxr-xr-x 4 root root 4096 Sep 16 11:43 roles-permisos/ drwxr-xr-x 4 root root 4096 Sep 15 14:38 tenants/ drwxr-xr-x 4 root root 4096 Sep 19 11:38 vacantes/ ------ tenants seria como la empresa o cliente, te mostrare los mmodelos de la BD
+
+
+
+
+
+
+
+ya tengo algunos guards y demas, mi consulta es otra cosa, mira mas o menos esto -- ¿Querés que te ayude a hacer un diagrama de flujo o una descripción escrita paso a paso? ----- hasta este momento tengo pensado asi -- el superadmin crea o registra una nueva empresa o cliente, por defecto en el endpoint que ya tengo sea crean 2 roles por defecto para la empresa o cliente , que es ADMIN y RECLUTADOR, esta el ROL superadmin que solo los desarrolladores del sistema lo pueden tener, ahora dependiendo de la empresa ocliente se pueden crear otros roles, pero lo general es admin y reclutador, y luego hay un rol medio especial que es el de candidato. Luego de que el superadmin haya registrado la empresa, crear los usuarios y le asigna los roles creados (admin o reclutador), te mostrare los services ok ?
