@@ -19,6 +19,8 @@ model Tenants {
   slug      String   @unique
   status    String   @default("active")
   createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+
 
   usuarios      Usuarios[]
   roles         Roles[] // <-- agregar
@@ -89,25 +91,6 @@ model Cargos {
 
   @@index([tenantId])
 }
-
-// model Vacantes {
-//   id                  String   @id @default(cuid())
-//   tenantId            String
-//   tenant              Tenants  @relation(fields: [tenantId], references: [id])
-//   cargoId             String
-//   cargo               Cargos   @relation(fields: [cargoId], references: [id])
-//   ubicacion           String?
-//   tipoContrato        String?
-//   estado              String   @default("abierta")
-//   flujoAprobacionJson String?
-//   createdAt           DateTime @default(now())
-//   updatedAt           DateTime @updatedAt
-
-//   postulaciones Postulaciones[]
-//   Formularios   Formularios[]
-
-//   @@index([tenantId, cargoId, estado])
-// }
 
 model Vacantes {
   id           String    @id @default(cuid())

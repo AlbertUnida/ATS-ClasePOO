@@ -1,15 +1,31 @@
-import { Body, Controller, Get, Post, Req, Res, UnauthorizedException, UseGuards, Headers, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res, Patch, Param, Query, UnauthorizedException, UseGuards, Headers, HttpCode, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
+import { Request } from 'express';
 import { LoginDto } from './dto/login.dto';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { BootstrapSuperadminDto } from './dto/bootstrap-superadmin.dto';
 import { CreateTenantUserDto } from './dto/create-tenant-user.dto';
-import { SuperAdminGuard, TenantAdminGuard } from '../common/guards/superadmin.guard';
+import { UpdateTenantUserDto } from './dto/update-tenant-user.dto';
+import { SuperAdminGuard, TenantAdminGuard, AdminOrSuperAdminGuard } from '../common/guards/superadmin.guard';
 import { COOKIE_SECURE, COOKIE_DOMAIN, JWT_REFRESH_SECRET, REFRESH_TOKEN_TTL, ACCESS_TOKEN_TTL } from './auth.constants';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiSecurity, ApiCookieAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiSecurity, ApiCookieAuth, ApiParam } from '@nestjs/swagger';
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  roles: string[];  // o cualquier tipo que defina los roles
+  isSuperAdmin: boolean;  // Si lo necesitas
+  // Agrega los campos adicionales que tu usuario tenga
+}
+
+// Extiende la interfaz Request de Express para agregar la propiedad user
+interface RequestWithUser extends Request {
+  user: User; // Asegúrate de que la propiedad 'user' sea del tipo 'User'
+}
 
 @ApiTags('auth')
 @Controller('auth')
@@ -58,10 +74,10 @@ export class AuthController {
     @Req() req: any,
     @Res({ passthrough: true }) res: Response,
   ) {
-    console.log('BOOTSTRAP HIT');
-    console.log('HDR', req.header?.('X-Bootstrap-Token'));
-    console.log('ENV', process.env.BOOTSTRAP_TOKEN, 'ALLOW', process.env.ALLOW_BOOTSTRAP);
-    console.log('DTO', dto);
+    // console.log('BOOTSTRAP HIT');
+    // console.log('HDR', req.header?.('X-Bootstrap-Token'));
+    // console.log('ENV', process.env.BOOTSTRAP_TOKEN, 'ALLOW', process.env.ALLOW_BOOTSTRAP);
+    // console.log('DTO', dto);
     if (process.env.ALLOW_BOOTSTRAP !== 'true') {
       throw new ForbiddenException('Bootstrap deshabilitado');
     }
@@ -124,6 +140,36 @@ export class AuthController {
     return this.auth.createTenantUser({ ...rest, tenantSlug: req.user.tenant });
   }
 
+  @Get('users')
+  @UseGuards(AuthGuard('jwt'), AdminOrSuperAdminGuard)
+  @ApiCookieAuth('access-token')
+  @ApiOperation({ summary: 'Obtener usuarios según rol' })
+  @ApiResponse({ status: 200, description: 'Usuarios obtenidos correctamente' })
+  async findUsersByRole(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Req() req: RequestWithUser  // Accedemos a la solicitud para obtener el usuario logueado
+  ) {
+    const currentUserId = req.user.id;  // Obtenemos el ID del usuario desde la solicitud
+    const userRole = req.user.roles;    // Obtenemos los roles del usuario desde la solicitud
+
+    // Llamamos al servicio pasando la información necesaria
+    return this.auth.findUsersByRole(currentUserId, userRole, page, limit);
+  }
+
+  @Patch('users/:id')
+  @UseGuards(AuthGuard('jwt'), SuperAdminGuard)
+  @ApiCookieAuth('access-token')
+  @ApiOperation({ summary: 'Actualizar usuario de tenant (SUPERADMIN)' })
+  @ApiParam({ name: 'id', description: 'ID del usuario a actualizar' })
+  @ApiBody({ type: UpdateTenantUserDto })
+  @ApiResponse({ status: 200, description: 'Usuario actualizado' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  @ApiResponse({ status: 409, description: 'Email en uso' })
+  async updateTenantUser(@Param('id') id: string, @Body() dto: UpdateTenantUserDto) {
+    return this.auth.updateTenantUserById(id, dto);
+  }
+
   // @Post('refresh')
   // @HttpCode(HttpStatus.OK)
   // @ApiOperation({ summary: 'Refrescar access token usando refresh token (cookie)' })
@@ -184,6 +230,7 @@ export class AuthController {
       isSuperAdmin: req.user.isSuperAdmin,
       email: req.user.email,
       tenant: req.user.tenant,
+      tipoUsuario: 'corporativo',
     };
 
 

@@ -3,6 +3,7 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
+import { FilterTenantsDto } from './dto/filter-tenants.dto';
 import { toSlug } from '../common/utils/slug.util';
 import { RolesPermisosService } from '../roles-permisos/roles-permisos.service';
 
@@ -40,13 +41,7 @@ export class TenantsService {
   }
 
   // tenants.service.ts
-  async findAll(params: {
-    page?: number;
-    limit?: number;
-    name?: string;
-    slug?: string;
-    status?: string;
-  }) {
+  async findAll(params: FilterTenantsDto) {
     const {
       page = 1,
       limit = 10,
@@ -89,6 +84,12 @@ export class TenantsService {
     };
   }
 
+  async findById(id: string) {
+    const tenant = await this.prisma.tenants.findUnique({ where: { id } });
+    if (!tenant) throw new NotFoundException('Tenant no encontrado');
+    return tenant;
+  }
+
   // El slug es una versión simplificada, legible y "URL-amigable" de un nombre o título. 
   // Se usa comúnmente para identificar recursos de forma única en URLs.
   async findBySlug(slug: string) {
@@ -105,35 +106,29 @@ export class TenantsService {
     });
   }
 
-  // async update(slug: string, dto: UpdateTenantDto) {
-  //   // si cambian slug, verificar conflicto
-  //   if (dto.slug) {
-  //     const exists = await this.prisma.tenants.findUnique({ where: { slug: dto.slug } });
-  //     if (exists && exists.slug !== slug) throw new ConflictException('slug ya existe');
-  //   }
-  //   try {
-  //     return await this.prisma.tenants.update({
-  //       where: { slug },
-  //       data: {
-  //         name: dto.name?.trim(),
-  //         slug: dto.slug ? dto.slug.trim() : undefined,
-  //         status: dto.status as any,
-  //       },
-  //     });
-  //   } catch (e: any) {
-  //     if (e.code === 'P2025') throw new NotFoundException('Tenant no encontrado');
-  //     if (e.code === 'P2002') throw new ConflictException('slug ya existe');
-  //     throw e;
-  //   }
-  // }
+  async updateById(id: string, dto: UpdateTenantDto) {
+    if (dto.slug) {
+      const existing = await this.prisma.tenants.findUnique({ where: { slug: dto.slug } });
+      if (existing && existing.id !== id) {
+        throw new ConflictException('slug ya existe');
+      }
+    }
 
-  // async remove(slug: string) {
-  //   try {
-  //     // Borrado real para dev (rápido). Cuando quieras, cambia a soft delete (deletedAt).
-  //     return await this.prisma.tenants.delete({ where: { slug } });
-  //   } catch (e: any) {
-  //     if (e.code === 'P2025') throw new NotFoundException('Tenant no encontrado');
-  //     throw e;
-  //   }
-  // }
+    try {
+      return await this.prisma.tenants.update({
+        where: { id },
+        data: {
+          name: dto.name?.trim(),
+          slug: dto.slug?.trim(),
+          status: dto.status,
+        },
+      });
+    } catch (e: any) {
+      if (e.code === 'P2025') throw new NotFoundException('Tenant no encontrado');
+      if (e.code === 'P2002') throw new ConflictException('slug ya existe');
+      throw e;
+    }
+  }
+
+
 }

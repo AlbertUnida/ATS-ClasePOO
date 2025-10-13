@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as argon2 from 'argon2';
@@ -8,7 +8,7 @@ import {
   COOKIE_DOMAIN, COOKIE_SECURE,
 } from './auth.constants';
 import { ConflictException, ForbiddenException } from '@nestjs/common';
-
+import { UpdateTenantUserDto } from './dto/update-tenant-user.dto'
 @Injectable()
 export class AuthService {
   constructor(private prisma: PrismaService, private jwt: JwtService) { }
@@ -262,11 +262,14 @@ export class AuthService {
     } else {
       const normalized = (dto.roleName ?? 'CANDIDATO').trim().toUpperCase().replace(/-/g, '_');
       if (normalized === 'SUPERADMIN') throw new ForbiddenException('SUPERADMIN se crea solo por flujo dedicado');
-      role = await this.prisma.roles.upsert({
+      // Buscar rol existente
+      role = await this.prisma.roles.findUnique({
         where: { tenantId_name: { tenantId: tenant.id, name: normalized } },
-        update: {},
-        create: { tenantId: tenant.id, name: normalized },
       });
+
+      if (!role) {
+        throw new BadRequestException(`Rol inválido para este tenant: ${normalized}`);
+      }
     }
 
     const email = dto.email.toLowerCase();
@@ -299,6 +302,82 @@ export class AuthService {
     }
   }
 
+  async updateTenantUserById(id: string, dto: UpdateTenantUserDto) {
+    const user = await this.prisma.usuarios.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    const data: any = {};
+
+    if (dto.name) data.name = dto.name.trim();
+    if (dto.email) data.email = dto.email.toLowerCase();
+    if (dto.password) data.password = await argon2.hash(dto.password); // u otro método tuyo
+
+    if (dto.tenantSlug && dto.tenantSlug !== '') {
+      const tenant = await this.prisma.tenants.findUnique({ where: { slug: dto.tenantSlug } });
+      if (!tenant) throw new BadRequestException('Tenant inválido');
+      data.tenantId = tenant.id;
+    }
+
+    // ⚠️ Roles: si se envía roleId o roleName, actualizar asignación
+    let updatedRole;
+    if (dto.roleId || dto.roleName) {
+      const tenantId = data.tenantId || user.tenantId;
+
+      if (dto.roleId) {
+        const role = await this.prisma.roles.findUnique({ where: { id: dto.roleId } });
+        if (!role || role.tenantId !== tenantId)
+          throw new BadRequestException('Rol inválido para el tenant');
+        updatedRole = role;
+      } else if (dto.roleName) {
+        const normalized = dto.roleName.trim().toUpperCase().replace(/-/g, '_');
+        updatedRole = await this.prisma.roles.upsert({
+          where: { tenantId_name: { tenantId, name: normalized } },
+          update: {},
+          create: { tenantId, name: normalized },
+        });
+      }
+
+      // Actualizar asignación de roles
+      await this.prisma.usuarioRoles.upsert({
+        where: {
+          userId_roleId: {
+            userId: id,
+            roleId: updatedRole.id,
+          },
+        },
+        update: {},
+        create: {
+          userId: id,
+          roleId: updatedRole.id,
+        },
+      });
+    }
+
+    try {
+      const updated = await this.prisma.usuarios.update({
+        where: { id },
+        data,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          active: true,
+          createdAt: true,
+          updatedAt: true,
+          tenantId: true,
+        },
+      });
+
+      return {
+        ...updated,
+        role: updatedRole?.name,
+      };
+    } catch (e: any) {
+      if (e.code === 'P2002') throw new ConflictException('Email ya está en uso');
+      throw e;
+    }
+  }
+
   async hashPassword(password: string): Promise<string> {
     const saltRounds = 10;
     return bcrypt.hash(password, saltRounds);
@@ -306,6 +385,71 @@ export class AuthService {
 
   async comparePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
     return bcrypt.compare(plainPassword, hashedPassword);
+  }
+
+  // Función para obtener usuarios según el rol
+  async findUsersByRole(
+    currentUserId: string,
+    roles: string[],
+    page: number = 1,
+    limit: number = 10
+  ) {
+    const skip = (page - 1) * limit;
+    let where: any = {};
+
+    if (roles.includes('SUPERADMIN')) {
+      where = {}; // ve todos
+    } else if (roles.includes('ADMIN')) {
+      const tenant = await this.prisma.usuarios.findUnique({
+        where: { id: currentUserId },
+        select: { tenantId: true },
+      });
+
+      if (!tenant) throw new BadRequestException('Usuario no encontrado');
+
+      where = { tenantId: tenant.tenantId }; // solo los de su tenant
+    }
+
+    const [users, total] = await this.prisma.$transaction([
+      this.prisma.usuarios.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          roles: {
+            include: { role: true }, // 👈 nombre del rol
+          },
+          tenants: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.usuarios.count({ where }),
+    ]);
+
+    // 🔁 Formateamos la respuesta para que coincida con tu SELECT
+    const formatted = users.map((u) => ({
+      id: u.id,
+      email: u.email,
+      name_usuario: u.name,
+      tenantId: u.tenantId,
+      active: u.active,
+      createdAt: u.createdAt,
+      updatedAt: u.updatedAt,
+      //name_rol: u.roles?.[0]?.role?.name || null, // asumiendo un solo rol
+      name_rol: u.roles.map(r => r.role.name).join(', '),
+      name_empresa: u.tenants?.name || null,
+    }));
+
+    return {
+      data: formatted,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
 }

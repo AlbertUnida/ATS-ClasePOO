@@ -1,7 +1,8 @@
 // src/tenants/tenants.controller.ts
-import { Body, Controller, Delete, Get, Param, Patch, Query, Post, UseGuards, Headers, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Query, Post, UseGuards, Headers, HttpCode, HttpStatus, UsePipes, ValidationPipe } from '@nestjs/common';
 import { TenantsService } from './tenants.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
+import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { SuperAdminGuard } from '../common/guards/superadmin.guard';
 import { formatAsuncion } from '../common/utils/time.util';
 import { AuthGuard } from '@nestjs/passport';
@@ -32,18 +33,31 @@ export class TenantsController {
   @ApiCookieAuth('access-token')
   @ApiOperation({ summary: 'Listar todos los tenants' })
   @ApiResponse({ status: 200, description: 'Lista de tenants paginada y filtrada' })
+  @UsePipes(new ValidationPipe({ transform: true }))  // Añadido el ValidationPipe
   findAll(@Query() query: FilterTenantsDto) {
     return this.tenants.findAll(query);
   }
 
-  @Get(':slug')
+  // tenants.controller.ts
+  @UseGuards(AuthGuard('jwt'), SuperAdminGuard)
+  @Get(':id')
+  @ApiCookieAuth('access-token')
+  @ApiOperation({ summary: 'Obtener un tenant por ID (solo SuperAdmin)' })
+  @ApiParam({ name: 'id', description: 'ID del tenant' })
+  @ApiResponse({ status: 200, description: 'Tenant encontrado' })
+  @ApiResponse({ status: 404, description: 'Tenant no encontrado' })
+  async findOne(@Param('id') id: string) {
+    return this.tenants.findById(id);
+  }
+
+  @Get('slug/:slug')
   @UseGuards(AuthGuard('jwt'), SuperAdminGuard)
   @ApiCookieAuth('access-token')
   @ApiOperation({ summary: 'Obtener tenant por slug' })
   @ApiParam({ name: 'slug', description: 'Slug del tenant' })
   @ApiResponse({ status: 200, description: 'Tenant encontrado' })
   @ApiResponse({ status: 404, description: 'Tenant no encontrado' })
-  findOne(@Param('slug') slug: string) {
+  async findBySlug(@Param('slug') slug: string) {
     return this.tenants.findBySlug(slug);
   }
 
@@ -59,10 +73,22 @@ export class TenantsController {
     return this.tenants.findRolesBySlug(slug);
   }
 
-  // @Patch(':slug')
-  // update(@Param('slug') slug: string, @Body() dto: UpdateTenantDto) {
-  //   return this.tenants.update(slug, dto);
-  // }
+  @Patch(':id')
+  @UseGuards(AuthGuard('jwt'), SuperAdminGuard) // 🔐 Solo accesible con JWT + SuperAdmin
+  @ApiCookieAuth('access-token') // 🔐 Swagger indica que se requiere cookie con token
+  @ApiOperation({ summary: 'Actualizar un tenant por ID (solo SuperAdmin)' })
+  @ApiParam({ name: 'id', description: 'ID del tenant' })
+  @ApiBody({ type: UpdateTenantDto })
+  @ApiResponse({ status: 200, description: 'Tenant actualizado exitosamente' })
+  @ApiResponse({ status: 404, description: 'Tenant no encontrado' })
+  @ApiResponse({ status: 409, description: 'Slug en uso por otro tenant' })
+  async update(@Param('id') id: string, @Body() dto: UpdateTenantDto) {
+    const updated = await this.tenants.updateById(id, dto);
+    return {
+      ...updated,
+      updatedAtLocal: formatAsuncion(updated.updatedAt ?? new Date()),
+    };
+  }
 
   // @Delete(':slug')
   // remove(@Param('slug') slug: string) {

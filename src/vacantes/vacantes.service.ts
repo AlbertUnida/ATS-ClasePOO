@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateVacanteDto } from './dto/create-vacante.dto';
+import { UpdateVacanteDto } from './dto/update-vacante.dto';
 
 @Injectable()
 export class VacantesService {
@@ -22,7 +23,7 @@ export class VacantesService {
     if (!isSuperAdmin && user.tenant !== tenant.slug) {
       throw new ForbiddenException('No tienes acceso a este tenant');
     }
-    
+
     const estado = (dto.estado ?? 'abierta') as 'abierta' | 'pausada' | 'cerrada';
 
     const vacante = await this.prisma.vacantes.create({
@@ -116,5 +117,68 @@ export class VacantesService {
     });
   }
 
+  async update(id: string, dto: UpdateVacanteDto, user: any) {
+    const vacante = await this.prisma.vacantes.findUnique({ where: { id } });
+
+    if (!vacante || vacante.deletedAt) {
+      throw new NotFoundException('Vacante no encontrada o eliminada');
+    }
+
+    const isSuperAdmin = user.roles.includes('SUPERADMIN');
+    const tenant = await this.prisma.tenants.findUnique({ where: { id: vacante.tenantId } });
+    if (!tenant) throw new NotFoundException('Tenant no encontrado');
+
+    if (!isSuperAdmin && tenant.slug !== user.tenant) {
+      throw new ForbiddenException('No tienes acceso a esta vacante');
+    }
+
+    // Validar nuevo cargoId si lo quiere cambiar
+    if (dto.cargoId && dto.cargoId !== vacante.cargoId) {
+      const nuevoCargo = await this.prisma.cargos.findUnique({ where: { id: dto.cargoId } });
+      if (!nuevoCargo || nuevoCargo.tenantId !== tenant.id) {
+        throw new BadRequestException('cargoId inválido o no pertenece al tenant');
+      }
+    }
+
+    // Validar estado si lo quiere cambiar
+    if (dto.estado && !['abierta', 'pausada', 'cerrada'].includes(dto.estado)) {
+      throw new BadRequestException('estado inválido');
+    }
+
+    const dataToUpdate: any = {
+      cargoId: dto.cargoId,
+      ubicacion: dto.ubicacion,
+      tipoContrato: dto.tipoContrato,
+      estado: dto.estado,
+      flujoAprobacionJson: dto.flujoAprobacion ? JSON.stringify(dto.flujoAprobacion) : undefined,
+      updatedByUserId: user?.id,
+    };
+
+    // Quitar campos undefined para no sobreescribir nulos
+    Object.keys(dataToUpdate).forEach(key => {
+      if (dataToUpdate[key] === undefined) delete dataToUpdate[key];
+    });
+
+    const updated = await this.prisma.vacantes.update({
+      where: { id },
+      data: dataToUpdate,
+      include: { cargo: true },
+    });
+
+    // (Opcional) log de auditoría
+    await this.prisma.auditLog.create({
+      data: {
+        tenantId: tenant.id,
+        actorUserId: user?.id,
+        actorEmail: user?.email,
+        action: 'UPDATE',
+        entity: 'Vacantes',
+        entityId: updated.id,
+        note: 'Actualización de vacante',
+      },
+    });
+
+    return updated;
+  }
 
 }

@@ -7,5 +7,6 @@ import { PrismaModule } from '../prisma/prisma.module';
   imports: [PrismaModule],
   controllers: [PostulacionesController],
   providers: [PostulacionesService],
+  exports: [PostulacionesService], // 👈 Necesario para que otros módulos lo usen
 })
 export class PostulacionesModule {}

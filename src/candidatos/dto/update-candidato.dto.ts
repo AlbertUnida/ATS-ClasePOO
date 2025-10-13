@@ -1,14 +1,23 @@
-// dto/update-candidate.dto.ts
-import { PartialType, OmitType } from '@nestjs/mapped-types';
-import { CreateCandidatoDto } from './create-candidato.dto';
+import { IsOptional, IsString, IsObject } from 'class-validator';
+import { Transform } from 'class-transformer';
 
-// Omitimos campos no editables por update:
-// export class UpdateCandidatoDto extends PartialType(
-//     OmitType(CreateCandidatoDto, ['tenantSlug', 'createUser', 'password'] as const),
-// ) { }
+export class UpdateCandidatoDto {
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => value?.toString().trim())
+    nombre?: string;
 
-export class UpdateCandidatoDto extends PartialType(
-    OmitType(CreateCandidatoDto, ['tenantSlug'] as const),
-) { }
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => value?.toString().trim())
+    telefono?: string;
 
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => value?.toString().trim())
+    cvUrl?: string;
 
+    @IsOptional()
+    @IsObject()
+    perfil?: Record<string, any>;
+}

@@ -48,4 +48,18 @@ export class CargosController {
   findOne(@Param('id') id: string) {
     return this.cargos.findOne(id);
   }
+
+  @Patch(':id')
+  @UseGuards(AuthGuard('jwt'), AdminReclutadorOrSuperAdminGuard)
+  @ApiCookieAuth('access-token')
+  @ApiOperation({ summary: 'Actualizar un cargo por ID' })
+  @ApiParam({ name: 'id', description: 'ID del cargo' })
+  @ApiBody({ type: UpdateCargoDto })
+  @ApiResponse({ status: 200, description: 'Cargo actualizado exitosamente' })
+  @ApiResponse({ status: 403, description: 'No autorizado para modificar este cargo' })
+  @ApiResponse({ status: 404, description: 'Cargo no encontrado' })
+  update(@Param('id') id: string, @Body() dto: UpdateCargoDto, @Req() req: any) {
+    return this.cargos.update(id, dto, req.user);
+  }
+
 }

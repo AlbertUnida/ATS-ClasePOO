@@ -1,8 +1,9 @@
-import { Controller, Post, Body, Get, Query, UseGuards, Req, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Patch, Param, UseGuards, Req, BadRequestException } from '@nestjs/common';
 import { VacantesService } from './vacantes.service';
 import { CreateVacanteDto } from './dto/create-vacante.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBody, ApiCookieAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBody, ApiCookieAuth, ApiParam } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { UpdateVacanteDto } from './dto/update-vacante.dto';
 import { AdminReclutadorOrSuperAdminGuard } from '../common/guards/superadmin.guard';
 
 @ApiTags('vacantes')
@@ -41,6 +42,19 @@ export class VacantesController {
   @ApiOperation({ summary: 'Listar todas las vacantes públicas de todos los tenants' })
   listPublicasTodas() {
     return this.vacantes.listTodasPublicas();
+  }
+
+  @Patch(':id')
+  @UseGuards(AuthGuard('jwt'), AdminReclutadorOrSuperAdminGuard)
+  @ApiCookieAuth('access-token')
+  @ApiOperation({ summary: 'Actualizar vacante por ID (admin o superadmin)' })
+  @ApiParam({ name: 'id', description: 'ID de la vacante' })
+  @ApiBody({ type: UpdateVacanteDto })
+  @ApiResponse({ status: 200, description: 'Vacante actualizada' })
+  @ApiResponse({ status: 404, description: 'Vacante no encontrada' })
+  @ApiResponse({ status: 403, description: 'Acceso denegado' })
+  async update(@Param('id') id: string, @Body() dto: UpdateVacanteDto, @Req() req: any) {
+    return this.vacantes.update(id, dto, req.user);
   }
 
 

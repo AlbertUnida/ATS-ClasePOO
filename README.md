@@ -359,3 +359,174 @@ hola, estoy desarrollando un backend. api con nestjs + prisma y mysql, y docker,
 
 
 ya tengo algunos guards y demas, mi consulta es otra cosa, mira mas o menos esto -- ¿Querés que te ayude a hacer un diagrama de flujo o una descripción escrita paso a paso? ----- hasta este momento tengo pensado asi -- el superadmin crea o registra una nueva empresa o cliente, por defecto en el endpoint que ya tengo sea crean 2 roles por defecto para la empresa o cliente , que es ADMIN y RECLUTADOR, esta el ROL superadmin que solo los desarrolladores del sistema lo pueden tener, ahora dependiendo de la empresa ocliente se pueden crear otros roles, pero lo general es admin y reclutador, y luego hay un rol medio especial que es el de candidato. Luego de que el superadmin haya registrado la empresa, crear los usuarios y le asigna los roles creados (admin o reclutador), te mostrare los services ok ?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Buena pregunta. Organizar qué módulos deben permitir actualización (update) y con qué nivel de acceso según los roles (SuperAdmin, Admin, Reclutador) es clave para mantener una arquitectura segura y ordenada.
+
+Vamos a evaluarlo módulo por módulo 👇
+
+📁 auth (usuarios)
+
+Update necesario: ✅ Sí
+
+¿Quién puede hacer update?
+
+SuperAdmin: ✅ Puede actualizar cualquier usuario de cualquier tenant
+
+Admin: ✅ Puede actualizar usuarios de su propio tenant (no superadmins)
+
+Reclutador: ⚠️ Solo podría actualizar su propio perfil (si es necesario)
+
+🔐 Deberías tener:
+
+PATCH /auth/users/:id → SuperAdmin
+
+PATCH /auth/tenant/users/:id → Admin (validar que el user.tenantId coincida con el del req.user)
+
+PATCH /auth/me → Para que el usuario actual actualice su propio nombre o password
+
+📁 tenants
+
+Update necesario: ✅ Sí
+
+¿Quién puede hacer update?
+
+SuperAdmin: ✅ Puede actualizar cualquier tenant
+
+Admin: ❌ No (por lo general)
+
+Reclutador: ❌ No
+
+🛑 Generalmente, solo SuperAdmin debería modificar información de tenants (nombre, slug, status).
+
+📁 roles-permisos
+
+Update necesario: ✅ Depende
+
+¿Quién puede hacer update?
+
+SuperAdmin: ✅ Puede modificar roles/permisos de cualquier tenant
+
+Admin: ⚠️ Opcional. Si querés permitirles crear o editar roles para su propio tenant
+
+Reclutador: ❌ No
+
+🛠️ Depende de si querés una gestión flexible de roles por tenant.
+
+📁 candidatos
+
+Update necesario: ✅ Sí
+
+¿Quién puede hacer update?
+
+SuperAdmin: ✅ Cualquiera
+
+Admin: ✅ Solo candidatos de su tenant
+
+Reclutador: ✅ Solo candidatos de su tenant
+
+💡 Muy común que Admin y Reclutador necesiten editar datos de candidatos.
+
+📁 vacantes
+
+Update necesario: ✅ Sí
+
+¿Quién puede hacer update?
+
+SuperAdmin: ✅ Cualquier vacante
+
+Admin: ✅ Solo vacantes de su tenant
+
+Reclutador: ✅ Solo vacantes de su tenant
+
+📁 postulaciones
+
+Update necesario: ✅ Sí
+
+¿Quién puede hacer update?
+
+SuperAdmin: ✅
+
+Admin: ✅ De su tenant
+
+Reclutador: ✅ De su tenant
+
+🔁 Muy común actualizar estado, feedback, entrevistas, etc.
+
+📁 entrevistas
+
+Update necesario: ✅ Sí
+
+¿Quién puede hacer update?
+
+SuperAdmin: ✅
+
+Admin: ✅ De su tenant
+
+Reclutador: ✅ De su tenant
+
+📁 feedback
+
+Update necesario: ✅ Sí
+
+¿Quién puede hacer update?
+
+SuperAdmin: ✅
+
+Admin: ✅ De su tenant
+
+Reclutador: ✅ De su tenant
+
+📁 cargos
+
+Update necesario: ✅ Sí
+
+¿Quién puede hacer update?
+
+SuperAdmin: ✅
+
+Admin: ✅ De su tenant
+
+Reclutador: ⚠️ Opcional, generalmente no
+
+✅ Resumen por rol y módulo
+Módulo	SuperAdmin	Admin (tenant)	Reclutador (tenant)
+auth	✅ Todos	✅ Su tenant	⚠️ Solo perfil
+tenants	✅	❌	❌
+roles-permisos	✅	⚠️ Opcional	❌
+candidatos	✅	✅	✅
+vacantes	✅	✅	✅
+postulaciones	✅	✅	✅
+entrevistas	✅	✅	✅
+feedback	✅	✅	✅
+cargos	✅	✅	⚠️ Opcional

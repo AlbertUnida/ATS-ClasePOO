@@ -73,4 +73,33 @@ export class CargosService {
     if (!cargo) throw new NotFoundException('Cargo no encontrado');
     return this.present(cargo);
   }
+
+  async update(id: string, dto: UpdateCargoDto, user: any) {
+    const cargo = await this.prisma.cargos.findUnique({
+      where: { id },
+      include: { tenant: true },
+    });
+
+    if (!cargo) throw new NotFoundException('Cargo no encontrado');
+
+    const isSuperadmin = user.roles.includes('SUPERADMIN');
+    const belongsToTenant = cargo.tenant.slug === user.tenant;
+
+    if (!isSuperadmin && !belongsToTenant) {
+      throw new ForbiddenException('No tienes acceso a modificar este cargo');
+    }
+
+    const updated = await this.prisma.cargos.update({
+      where: { id },
+      data: {
+        nombre: dto.nombre?.trim(),
+        competenciasJson: dto.competencias
+          ? JSON.stringify(dto.competencias)
+          : undefined,
+      },
+    });
+
+    return this.present(updated);
+  }
+
 }

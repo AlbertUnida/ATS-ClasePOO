@@ -50,15 +50,4 @@ export class CandidatosController {
     return this.candidatosService.create(dto);
   }
 
-  // @Patch(':id')
-  // @ApiOperation({ summary: 'Actualizar perfil de candidato' })
-  // @ApiParam({ name: 'id', description: 'ID del candidato' })
-  // @ApiBody({ type: UpdateCandidatoDto })
-  // @ApiResponse({ status: 200, description: 'Candidato actualizado' })
-  // @ApiResponse({ status: 404, description: 'Candidato no encontrado' })
-  // @ApiResponse({ status: 409, description: 'Email ya está en uso en este tenant' })
-  // update(@Param('id') id: string, @Body() dto: UpdateCandidatoDto) {
-  //   return this.candidatosService.update(id, dto);
-  // }
-
 }

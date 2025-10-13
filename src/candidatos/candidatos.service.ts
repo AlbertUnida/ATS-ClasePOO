@@ -3,6 +3,8 @@ import { CreateCandidatoDto } from './dto/create-candidato.dto';
 import { CandidateRegisterDto } from './dto/candidate-register.dto';
 import { CandidateLoginDto } from './dto/candidate-login.dto';
 import { UpdateCandidatoDto } from './dto/update-candidato.dto';
+import { PostulacionesService } from '../postulaciones/postulaciones.service'; // 👈
+import { CreatePostulacionDto } from '../postulaciones/dto/create-postulacione.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
 import { Response } from 'express';
@@ -12,6 +14,7 @@ export class CandidatosService {
   constructor(
     private prisma: PrismaService,
     private authService: AuthService,
+    private postulacionesService: PostulacionesService,
   ) { }
 
   private present(c: any) {
@@ -85,7 +88,7 @@ export class CandidatosService {
   async login(dto: CandidateLoginDto, res: Response) {
     const cuenta = await this.prisma.candidatoCuentas.findUnique({
       where: { email: dto.email },
-      include: { candidatos: true }, // si querés acceder al perfil
+      include: { candidatos: true },
     });
 
     if (!cuenta) {
@@ -100,32 +103,96 @@ export class CandidatosService {
     const payload = {
       sub: cuenta.id,
       email: cuenta.email,
-      // podés incluir más info si querés
     };
 
     const accessToken = await this.authService.signAccess(payload);
 
-    res.cookie('access-token', accessToken, this.authService.cookieOpts());
-    //return { message: 'Login exitoso' };
+    // ✅ DEBUG: imprimir el token y el payload
+    //console.log('🔐 Candidate login payload:', payload);
+    //console.log('📦 JWT:', accessToken);
+
+    res.cookie('access_token', accessToken, this.authService.cookieOpts());
 
     return {
       access_token: accessToken,
-      message: 'Login exitoso' 
-      //candidato: cuenta.candidatos[0] ?? null,
+      message: 'Login exitoso',
+      // ⚠️ Solo para debug temporal: devolvé también el payload
+      payload, // podés quitarlo después
     };
   }
 
-  async findByCuentaId(cuentaId: string) {
+  async findByCuentaId(cuentaId: string, includePostulaciones = false) {
+    if (includePostulaciones) {
+      const candidato = await this.prisma.candidatos.findFirst({
+        where: { cuentaId },
+        include: {
+          postulaciones: {
+            include: {
+              vacante: {
+                include: {
+                  tenant: { select: { name: true } },
+                  cargo: true,
+                },
+              },
+              eventos: true,
+              entrevistas: true,
+              feedbacks: true,
+            },
+          },
+        },
+      });
+
+      if (!candidato) throw new NotFoundException('Candidato no encontrado');
+
+      return {
+        postulaciones: candidato.postulaciones,
+      };
+    }
+
+    // Caso sin include
     const candidato = await this.prisma.candidatos.findFirst({
       where: { cuentaId },
     });
 
-    if (!candidato) {
-      throw new NotFoundException('Candidato no encontrado');
-    }
+    if (!candidato) throw new NotFoundException('Candidato no encontrado');
 
-    return this.present(candidato); // Usás tu método present() para ocultar perfilJson
+    return {
+      ...this.present(candidato),
+      tipoUsuario: 'candidato', // 👈 agregado explícitamente
+    };
   }
 
+  async updateByCuentaId(cuentaId: string, dto: UpdateCandidatoDto) {
+    const candidato = await this.prisma.candidatos.findFirst({
+      where: { cuentaId },
+    });
+
+    if (!candidato) throw new NotFoundException('Candidato no encontrado');
+
+    const updated = await this.prisma.candidatos.update({
+      where: { id: candidato.id },
+      data: {
+        nombre: dto.nombre,
+        telefono: dto.telefono,
+        cvUrl: dto.cvUrl,
+        perfilJson: dto.perfil ? JSON.stringify(dto.perfil) : undefined,
+      },
+    });
+
+    return this.present(updated);
+  }
+
+  async postularDesdeCandidatoCuenta(
+    cuentaId: string,
+    dto: CreatePostulacionDto,
+    userContext: any,
+  ) {
+    const candidato = await this.prisma.candidatos.findFirst({
+      where: { cuentaId },
+    });
+    if (!candidato) throw new NotFoundException('Candidato no encontrado');
+
+    return this.postulacionesService.create(dto, candidato.id, userContext);
+  }
 
 }
