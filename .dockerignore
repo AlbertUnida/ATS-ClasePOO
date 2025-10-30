@@ -1,0 +1,8 @@
+﻿node_modules
+frontend/node_modules
+dist
+mysql-data
+*.log
+.git
+.gitignore
+frontend/dist
