@@ -5,8 +5,8 @@ import { Transform } from 'class-transformer';
 export class CandidateLoginDto {
     @IsEmail()
     @Transform(({ value }) => value?.toString().trim().toLowerCase())
-    email: string;
+    email!: string;
 
     @IsString()
-    password: string;
+    password!: string;
 }

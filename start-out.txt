@@ -1,0 +1,913 @@
+
+> backend-ats@0.0.1 start:dev
+> nest start --watch
+
+[2J[3J[H[[90m10:46:26 p. m.[0m] Starting compilation in watch mode...
+
+[[90m10:46:44 p. m.[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 3176  - [39m30/10/2025, 10:46:50 p. m. [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[2J[3J[H[[90m11:32:54 p. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m11:32:58 p. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:49:59 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:50:00 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:50:01 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:50:01 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:50:06 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:50:06 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:50:21 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:50:22 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:50:26 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:50:27 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:50:31 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:50:32 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:50:32 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:50:32 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:50:33 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:50:33 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:50:36 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:50:37 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:50:44 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:50:44 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:50:56 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:50:56 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:51:02 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:51:02 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:51:03 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:51:03 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:51:07 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:51:07 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:51:08 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:51:08 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:51:13 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:51:13 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:51:19 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:51:19 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:51:20 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:51:21 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPrismaModule dependencies initialized[39m[38;5;3m +104ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +28ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +16ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mRolesPermisosModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPostulacionesModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCargosModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVacantesModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mEntrevistasModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mFeedbackModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTenantsModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCandidatosModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAppController {/}:[39m[38;5;3m +246ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/, GET} route[39m[38;5;3m +10ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/auth}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/login, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/bootstrap-superadmin, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/admin/superadmins, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/users, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/tenant/users, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/users, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/users/:id, PATCH} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/logout, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/me, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mTenantsController {/tenants}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/slug/:slug, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/:slug/roles, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mRolesPermisosController {/roles-permisos}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos/permisos/list, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos/:roleId, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos/:roleId/assign-permissions, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCandidatosController {/candidatos}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/candidatos, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthCandidatosController {/auth/candidatos}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/register, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/login, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/me, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/me, PUT} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/postular, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/logout, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPostulacionesController {/postulaciones}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/postulaciones, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/postulaciones, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCargosController {/cargos}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVacantesController {/vacantes}:[39m[38;5;3m +3ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes/publicas, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes/publicasTodas, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mEntrevistasController {/entrevistas}:[39m[38;5;3m +2ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mFeedbackController {/feedbacks}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24700  - [39m31/10/2025, 8:51:26 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[2J[3J[H[[90m8:51:39 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:51:39 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPrismaModule dependencies initialized[39m[38;5;3m +156ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +26ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +5ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mRolesPermisosModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPostulacionesModule dependencies initialized[39m[38;5;3m +3ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCargosModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVacantesModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mEntrevistasModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mFeedbackModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTenantsModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCandidatosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[2J[3J[H[[90m8:51:43 a. m.[0m] File change detected. Starting incremental compilation...
+
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAppController {/}:[39m[38;5;3m +412ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/, GET} route[39m[38;5;3m +5ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/auth}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/login, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/bootstrap-superadmin, POST} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/admin/superadmins, POST} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/users, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/tenant/users, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/users, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/users/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/logout, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/me, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mTenantsController {/tenants}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/slug/:slug, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/:slug/roles, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mRolesPermisosController {/roles-permisos}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos/permisos/list, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos/:roleId, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:43 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos/:roleId/assign-permissions, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCandidatosController {/candidatos}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/candidatos, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthCandidatosController {/auth/candidatos}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/register, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/me, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/me, PUT} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/postular, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/logout, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPostulacionesController {/postulaciones}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/postulaciones, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/postulaciones, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCargosController {/cargos}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVacantesController {/vacantes}:[39m[38;5;3m +2ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes/publicas, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes/publicasTodas, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mEntrevistasController {/entrevistas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mFeedbackController {/feedbacks}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 1420  - [39m31/10/2025, 8:51:44 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[[90m8:51:44 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m8:51:47 a. m.[0m] File change detected. Starting incremental compilation...
+
+[2J[3J[H[[90m8:52:29 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m8:52:32 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m11:10:54 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m11:10:55 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m11:10:55 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m11:10:56 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m11:10:56 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m11:10:57 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m11:10:58 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m11:10:58 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m11:10:58 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m11:10:59 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m11:11:01 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m11:11:01 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m11:11:02 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m11:11:03 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m11:11:03 a. m.[0m] File change detected. Starting incremental compilation...
+
+[[90m11:11:04 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:08 a. m. [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPrismaModule dependencies initialized[39m[38;5;3m +60ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +10ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +7ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mRolesPermisosModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPostulacionesModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCargosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVacantesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mEntrevistasModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mFeedbackModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTenantsModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCandidatosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAppController {/}:[39m[38;5;3m +104ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/, GET} route[39m[38;5;3m +7ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/auth}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/login, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/bootstrap-superadmin, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/admin/superadmins, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/users, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/tenant/users, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/users, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/users/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/logout, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/me, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mTenantsController {/tenants}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/slug/:slug, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/:slug/roles, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mRolesPermisosController {/roles-permisos}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos/permisos/list, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos/:roleId, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos/:roleId/assign-permissions, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCandidatosController {/candidatos}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/candidatos, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthCandidatosController {/auth/candidatos}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/register, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/login, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/me, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/me, PUT} route[39m[38;5;3m +0ms[39m
+[2J[3J[H[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/postular, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/logout, POST} route[39m[38;5;3m +1ms[39m
+[[90m11:11:09 a. m.[0m] File change detected. Starting incremental compilation...
+
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPostulacionesController {/postulaciones}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/postulaciones, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/postulaciones, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCargosController {/cargos}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVacantesController {/vacantes}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes/publicas, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes/publicasTodas, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mEntrevistasController {/entrevistas}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas/:id, PATCH} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mFeedbackController {/feedbacks}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25184  - [39m31/10/2025, 11:11:09 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[[90m11:11:09 a. m.[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPrismaModule dependencies initialized[39m[38;5;3m +58ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +8ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +12ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mRolesPermisosModule dependencies initialized[39m[38;5;3m +11ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPostulacionesModule dependencies initialized[39m[38;5;3m +15ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCargosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVacantesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mEntrevistasModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mFeedbackModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTenantsModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCandidatosModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAppController {/}:[39m[38;5;3m +174ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/, GET} route[39m[38;5;3m +8ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/auth}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/login, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/bootstrap-superadmin, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/admin/superadmins, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/users, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/tenant/users, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/users, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/users/:id, PATCH} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/logout, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/me, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mTenantsController {/tenants}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/slug/:slug, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/:slug/roles, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/tenants/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mRolesPermisosController {/roles-permisos}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos/permisos/list, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos/:roleId, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/roles-permisos/:roleId/assign-permissions, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCandidatosController {/candidatos}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/candidatos, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthCandidatosController {/auth/candidatos}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/register, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/login, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/me, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/me, PUT} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/postular, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/candidatos/logout, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPostulacionesController {/postulaciones}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/postulaciones, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/postulaciones, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCargosController {/cargos}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/cargos/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVacantesController {/vacantes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes/publicas, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes/publicasTodas, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/vacantes/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mEntrevistasController {/entrevistas}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/entrevistas/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mFeedbackController {/feedbacks}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 7400  - [39m31/10/2025, 11:11:13 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/feedbacks/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[2J[3J[H[[90m11:23:44 a. m.[0m] File change detected. Starting incremental compilation...
+
+[96msrc/auth/dto/bootstrap-superadmin.dto.ts[0m:[93m4[0m:[93m17[0m - [91merror[0m[90m TS2564: [0mProperty 'name' has no initializer and is not definitely assigned in the constructor.
+
+[7m4[0m     @IsString() name: string;
+[7m [0m [91m                ~~~~[0m
+
+[96msrc/auth/dto/bootstrap-superadmin.dto.ts[0m:[93m5[0m:[93m16[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m     @IsEmail() email: string;
+[7m [0m [91m               ~~~~~[0m
+
+[96msrc/auth/dto/bootstrap-superadmin.dto.ts[0m:[93m6[0m:[93m31[0m - [91merror[0m[90m TS2564: [0mProperty 'password' has no initializer and is not definitely assigned in the constructor.
+
+[7m6[0m     @IsString() @MinLength(8) password: string;
+[7m [0m [91m                              ~~~~~~~~[0m
+
+[96msrc/auth/dto/create-tenant-user.dto.ts[0m:[93m5[0m:[93m29[0m - [91merror[0m[90m TS2564: [0mProperty 'name' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m   @IsString() @IsNotEmpty() name: string;
+[7m [0m [91m                            ~~~~[0m
+
+[96msrc/auth/dto/create-tenant-user.dto.ts[0m:[93m6[0m:[93m14[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m6[0m   @IsEmail() email: string;
+[7m [0m [91m             ~~~~~[0m
+
+[96msrc/auth/dto/create-tenant-user.dto.ts[0m:[93m7[0m:[93m29[0m - [91merror[0m[90m TS2564: [0mProperty 'password' has no initializer and is not definitely assigned in the constructor.
+
+[7m7[0m   @IsString() @MinLength(8) password: string;
+[7m [0m [91m                            ~~~~~~~~[0m
+
+[96msrc/auth/dto/login.dto.ts[0m:[93m4[0m:[93m16[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m4[0m     @IsEmail() email: string;
+[7m [0m [91m               ~~~~~[0m
+
+[96msrc/auth/dto/login.dto.ts[0m:[93m5[0m:[93m17[0m - [91merror[0m[90m TS2564: [0mProperty 'password' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m     @IsString() password: string;
+[7m [0m [91m                ~~~~~~~~[0m
+
+[96msrc/candidatos/dto/candidate-login.dto.ts[0m:[93m8[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m8[0m     email: string;
+[7m [0m [91m    ~~~~~[0m
+
+[96msrc/candidatos/dto/candidate-login.dto.ts[0m:[93m11[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'password' has no initializer and is not definitely assigned in the constructor.
+
+[7m11[0m     password: string;
+[7m  [0m [91m    ~~~~~~~~[0m
+
+[96msrc/candidatos/dto/candidate-register.dto.ts[0m:[93m6[0m:[93m17[0m - [91merror[0m[90m TS2564: [0mProperty 'name' has no initializer and is not definitely assigned in the constructor.
+
+[7m6[0m     @IsString() name: string;
+[7m [0m [91m                ~~~~[0m
+
+[96msrc/candidatos/dto/candidate-register.dto.ts[0m:[93m10[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m10[0m     email: string;
+[7m  [0m [91m    ~~~~~[0m
+
+[96msrc/candidatos/dto/candidate-register.dto.ts[0m:[93m13[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'password' has no initializer and is not definitely assigned in the constructor.
+
+[7m13[0m     password: string;
+[7m  [0m [91m    ~~~~~~~~[0m
+
+[96msrc/candidatos/dto/create-candidato.dto.ts[0m:[93m10[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'tenantSlug' has no initializer and is not definitely assigned in the constructor.
+
+[7m10[0m   tenantSlug: string; // Interno: quién crea decide el tenant
+[7m  [0m [91m  ~~~~~~~~~~[0m
+
+[96msrc/candidatos/dto/create-candidato.dto.ts[0m:[93m15[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'nombre' has no initializer and is not definitely assigned in the constructor.
+
+[7m15[0m   nombre: string;
+[7m  [0m [91m  ~~~~~~[0m
+
+[96msrc/candidatos/dto/create-candidato.dto.ts[0m:[93m20[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m20[0m   email: string;
+[7m  [0m [91m  ~~~~~[0m
+
+[96msrc/cargos/dto/create-cargo.dto.ts[0m:[93m13[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'nombre' has no initializer and is not definitely assigned in the constructor.
+
+[7m13[0m     nombre: string;
+[7m  [0m [91m    ~~~~~~[0m
+
+[96msrc/entrevistas/dto/create-entrevista.dto.ts[0m:[93m5[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'tenantSlug' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m     tenantSlug: string;
+[7m [0m [91m    ~~~~~~~~~~[0m
+
+[96msrc/entrevistas/dto/create-entrevista.dto.ts[0m:[93m8[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'postulacionId' has no initializer and is not definitely assigned in the constructor.
+
+[7m8[0m     postulacionId: string;
+[7m [0m [91m    ~~~~~~~~~~~~~[0m
+
+[96msrc/entrevistas/dto/create-entrevista.dto.ts[0m:[93m11[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'tipo' has no initializer and is not definitely assigned in the constructor.
+
+[7m11[0m     tipo: string;
+[7m  [0m [91m    ~~~~[0m
+
+[96msrc/entrevistas/dto/create-entrevista.dto.ts[0m:[93m14[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'inicioTs' has no initializer and is not definitely assigned in the constructor.
+
+[7m14[0m     inicioTs: string;
+[7m  [0m [91m    ~~~~~~~~[0m
+
+[96msrc/entrevistas/dto/create-entrevista.dto.ts[0m:[93m17[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'finTs' has no initializer and is not definitely assigned in the constructor.
+
+[7m17[0m     finTs: string;
+[7m  [0m [91m    ~~~~~[0m
+
+[96msrc/feedback/dto/create-feedback.dto.ts[0m:[93m5[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'tenantSlug' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m     tenantSlug: string;
+[7m [0m [91m    ~~~~~~~~~~[0m
+
+[96msrc/feedback/dto/create-feedback.dto.ts[0m:[93m8[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'postulacionId' has no initializer and is not definitely assigned in the constructor.
+
+[7m8[0m     postulacionId: string;
+[7m [0m [91m    ~~~~~~~~~~~~~[0m
+
+[96msrc/feedback/dto/create-feedback.dto.ts[0m:[93m11[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'puntaje' has no initializer and is not definitely assigned in the constructor.
+
+[7m11[0m     puntaje: number;
+[7m  [0m [91m    ~~~~~~~[0m
+
+[96msrc/postulaciones/dto/create-postulacione.dto.ts[0m:[93m10[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'tenantSlug' has no initializer and is not definitely assigned in the constructor.
+
+[7m10[0m   tenantSlug: string;
+[7m  [0m [91m  ~~~~~~~~~~[0m
+
+[96msrc/postulaciones/dto/create-postulacione.dto.ts[0m:[93m14[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'vacanteId' has no initializer and is not definitely assigned in the constructor.
+
+[7m14[0m   vacanteId: string;
+[7m  [0m [91m  ~~~~~~~~~[0m
+
+[96msrc/roles-permisos/dto/create-roles-permiso.dto.ts[0m:[93m5[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'tenantSlug' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m     tenantSlug: string;
+[7m [0m [91m    ~~~~~~~~~~[0m
+
+[96msrc/roles-permisos/dto/create-roles-permiso.dto.ts[0m:[93m8[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'name' has no initializer and is not definitely assigned in the constructor.
+
+[7m8[0m     name: string;
+[7m [0m [91m    ~~~~[0m
+
+[96msrc/roles-permisos/roles-permisos.controller.ts[0m:[93m11[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'permissions' has no initializer and is not definitely assigned in the constructor.
+
+[7m11[0m   permissions: string[];
+[7m  [0m [91m  ~~~~~~~~~~~[0m
+
+[96msrc/tenants/dto/create-tenant.dto.ts[0m:[93m6[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'name' has no initializer and is not definitely assigned in the constructor.
+
+[7m6[0m     name: string;
+[7m [0m [91m    ~~~~[0m
+
+[96msrc/vacantes/dto/create-vacante.dto.ts[0m:[93m10[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'cargoId' has no initializer and is not definitely assigned in the constructor.
+
+[7m10[0m   cargoId: string;
+[7m  [0m [91m  ~~~~~~~[0m
+
+[[90m11:23:54 a. m.[0m] Found 32 errors. Watching for file changes.
+
+[2J[3J[H[[90m11:23:55 a. m.[0m] File change detected. Starting incremental compilation...
+
+[2J[3J[H[[90m12:40:57 p. m.[0m] File change detected. Starting incremental compilation...
+
+[96msrc/auth/dto/bootstrap-superadmin.dto.ts[0m:[93m4[0m:[93m17[0m - [91merror[0m[90m TS2564: [0mProperty 'name' has no initializer and is not definitely assigned in the constructor.
+
+[7m4[0m     @IsString() name: string;
+[7m [0m [91m                ~~~~[0m
+
+[96msrc/auth/dto/bootstrap-superadmin.dto.ts[0m:[93m5[0m:[93m16[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m     @IsEmail() email: string;
+[7m [0m [91m               ~~~~~[0m
+
+[96msrc/auth/dto/bootstrap-superadmin.dto.ts[0m:[93m6[0m:[93m31[0m - [91merror[0m[90m TS2564: [0mProperty 'password' has no initializer and is not definitely assigned in the constructor.
+
+[7m6[0m     @IsString() @MinLength(8) password: string;
+[7m [0m [91m                              ~~~~~~~~[0m
+
+[96msrc/auth/dto/create-tenant-user.dto.ts[0m:[93m5[0m:[93m29[0m - [91merror[0m[90m TS2564: [0mProperty 'name' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m   @IsString() @IsNotEmpty() name: string;
+[7m [0m [91m                            ~~~~[0m
+
+[96msrc/auth/dto/create-tenant-user.dto.ts[0m:[93m6[0m:[93m14[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m6[0m   @IsEmail() email: string;
+[7m [0m [91m             ~~~~~[0m
+
+[96msrc/auth/dto/create-tenant-user.dto.ts[0m:[93m7[0m:[93m29[0m - [91merror[0m[90m TS2564: [0mProperty 'password' has no initializer and is not definitely assigned in the constructor.
+
+[7m7[0m   @IsString() @MinLength(8) password: string;
+[7m [0m [91m                            ~~~~~~~~[0m
+
+[96msrc/auth/dto/login.dto.ts[0m:[93m4[0m:[93m16[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m4[0m     @IsEmail() email: string;
+[7m [0m [91m               ~~~~~[0m
+
+[96msrc/auth/dto/login.dto.ts[0m:[93m5[0m:[93m17[0m - [91merror[0m[90m TS2564: [0mProperty 'password' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m     @IsString() password: string;
+[7m [0m [91m                ~~~~~~~~[0m
+
+[96msrc/candidatos/dto/candidate-login.dto.ts[0m:[93m8[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m8[0m     email: string;
+[7m [0m [91m    ~~~~~[0m
+
+[96msrc/candidatos/dto/candidate-login.dto.ts[0m:[93m11[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'password' has no initializer and is not definitely assigned in the constructor.
+
+[7m11[0m     password: string;
+[7m  [0m [91m    ~~~~~~~~[0m
+
+[96msrc/candidatos/dto/candidate-register.dto.ts[0m:[93m6[0m:[93m17[0m - [91merror[0m[90m TS2564: [0mProperty 'name' has no initializer and is not definitely assigned in the constructor.
+
+[7m6[0m     @IsString() name: string;
+[7m [0m [91m                ~~~~[0m
+
+[96msrc/candidatos/dto/candidate-register.dto.ts[0m:[93m10[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m10[0m     email: string;
+[7m  [0m [91m    ~~~~~[0m
+
+[96msrc/candidatos/dto/candidate-register.dto.ts[0m:[93m13[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'password' has no initializer and is not definitely assigned in the constructor.
+
+[7m13[0m     password: string;
+[7m  [0m [91m    ~~~~~~~~[0m
+
+[96msrc/candidatos/dto/create-candidato.dto.ts[0m:[93m10[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'tenantSlug' has no initializer and is not definitely assigned in the constructor.
+
+[7m10[0m   tenantSlug: string; // Interno: quién crea decide el tenant
+[7m  [0m [91m  ~~~~~~~~~~[0m
+
+[96msrc/candidatos/dto/create-candidato.dto.ts[0m:[93m15[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'nombre' has no initializer and is not definitely assigned in the constructor.
+
+[7m15[0m   nombre: string;
+[7m  [0m [91m  ~~~~~~[0m
+
+[96msrc/candidatos/dto/create-candidato.dto.ts[0m:[93m20[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m20[0m   email: string;
+[7m  [0m [91m  ~~~~~[0m
+
+[96msrc/cargos/dto/create-cargo.dto.ts[0m:[93m13[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'nombre' has no initializer and is not definitely assigned in the constructor.
+
+[7m13[0m     nombre: string;
+[7m  [0m [91m    ~~~~~~[0m
+
+[96msrc/entrevistas/dto/create-entrevista.dto.ts[0m:[93m5[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'tenantSlug' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m     tenantSlug: string;
+[7m [0m [91m    ~~~~~~~~~~[0m
+
+[96msrc/entrevistas/dto/create-entrevista.dto.ts[0m:[93m8[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'postulacionId' has no initializer and is not definitely assigned in the constructor.
+
+[7m8[0m     postulacionId: string;
+[7m [0m [91m    ~~~~~~~~~~~~~[0m
+
+[96msrc/entrevistas/dto/create-entrevista.dto.ts[0m:[93m11[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'tipo' has no initializer and is not definitely assigned in the constructor.
+
+[7m11[0m     tipo: string;
+[7m  [0m [91m    ~~~~[0m
+
+[96msrc/entrevistas/dto/create-entrevista.dto.ts[0m:[93m14[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'inicioTs' has no initializer and is not definitely assigned in the constructor.
+
+[7m14[0m     inicioTs: string;
+[7m  [0m [91m    ~~~~~~~~[0m
+
+[96msrc/entrevistas/dto/create-entrevista.dto.ts[0m:[93m17[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'finTs' has no initializer and is not definitely assigned in the constructor.
+
+[7m17[0m     finTs: string;
+[7m  [0m [91m    ~~~~~[0m
+
+[96msrc/feedback/dto/create-feedback.dto.ts[0m:[93m5[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'tenantSlug' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m     tenantSlug: string;
+[7m [0m [91m    ~~~~~~~~~~[0m
+
+[96msrc/feedback/dto/create-feedback.dto.ts[0m:[93m8[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'postulacionId' has no initializer and is not definitely assigned in the constructor.
+
+[7m8[0m     postulacionId: string;
+[7m [0m [91m    ~~~~~~~~~~~~~[0m
+
+[96msrc/feedback/dto/create-feedback.dto.ts[0m:[93m11[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'puntaje' has no initializer and is not definitely assigned in the constructor.
+
+[7m11[0m     puntaje: number;
+[7m  [0m [91m    ~~~~~~~[0m
+
+[96msrc/postulaciones/dto/create-postulacione.dto.ts[0m:[93m10[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'tenantSlug' has no initializer and is not definitely assigned in the constructor.
+
+[7m10[0m   tenantSlug: string;
+[7m  [0m [91m  ~~~~~~~~~~[0m
+
+[96msrc/postulaciones/dto/create-postulacione.dto.ts[0m:[93m14[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'vacanteId' has no initializer and is not definitely assigned in the constructor.
+
+[7m14[0m   vacanteId: string;
+[7m  [0m [91m  ~~~~~~~~~[0m
+
+[96msrc/roles-permisos/dto/create-roles-permiso.dto.ts[0m:[93m5[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'tenantSlug' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m     tenantSlug: string;
+[7m [0m [91m    ~~~~~~~~~~[0m
+
+[96msrc/roles-permisos/dto/create-roles-permiso.dto.ts[0m:[93m8[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'name' has no initializer and is not definitely assigned in the constructor.
+
+[7m8[0m     name: string;
+[7m [0m [91m    ~~~~[0m
+
+[96msrc/roles-permisos/roles-permisos.controller.ts[0m:[93m11[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'permissions' has no initializer and is not definitely assigned in the constructor.
+
+[7m11[0m   permissions: string[];
+[7m  [0m [91m  ~~~~~~~~~~~[0m
+
+[96msrc/tenants/dto/create-tenant.dto.ts[0m:[93m6[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'name' has no initializer and is not definitely assigned in the constructor.
+
+[7m6[0m     name: string;
+[7m [0m [91m    ~~~~[0m
+
+[96msrc/vacantes/dto/create-vacante.dto.ts[0m:[93m10[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'cargoId' has no initializer and is not definitely assigned in the constructor.
+
+[7m10[0m   cargoId: string;
+[7m  [0m [91m  ~~~~~~~[0m
+
+[[90m12:41:03 p. m.[0m] Found 32 errors. Watching for file changes.
+
+[2J[3J[H[[90m12:41:04 p. m.[0m] File change detected. Starting incremental compilation...
+
+[96msrc/auth/dto/bootstrap-superadmin.dto.ts[0m:[93m4[0m:[93m17[0m - [91merror[0m[90m TS2564: [0mProperty 'name' has no initializer and is not definitely assigned in the constructor.
+
+[7m4[0m     @IsString() name: string;
+[7m [0m [91m                ~~~~[0m
+
+[96msrc/auth/dto/bootstrap-superadmin.dto.ts[0m:[93m5[0m:[93m16[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m     @IsEmail() email: string;
+[7m [0m [91m               ~~~~~[0m
+
+[96msrc/auth/dto/bootstrap-superadmin.dto.ts[0m:[93m6[0m:[93m31[0m - [91merror[0m[90m TS2564: [0mProperty 'password' has no initializer and is not definitely assigned in the constructor.
+
+[7m6[0m     @IsString() @MinLength(8) password: string;
+[7m [0m [91m                              ~~~~~~~~[0m
+
+[96msrc/auth/dto/create-tenant-user.dto.ts[0m:[93m5[0m:[93m29[0m - [91merror[0m[90m TS2564: [0mProperty 'name' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m   @IsString() @IsNotEmpty() name: string;
+[7m [0m [91m                            ~~~~[0m
+
+[96msrc/auth/dto/create-tenant-user.dto.ts[0m:[93m6[0m:[93m14[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m6[0m   @IsEmail() email: string;
+[7m [0m [91m             ~~~~~[0m
+
+[96msrc/auth/dto/create-tenant-user.dto.ts[0m:[93m7[0m:[93m29[0m - [91merror[0m[90m TS2564: [0mProperty 'password' has no initializer and is not definitely assigned in the constructor.
+
+[7m7[0m   @IsString() @MinLength(8) password: string;
+[7m [0m [91m                            ~~~~~~~~[0m
+
+[96msrc/auth/dto/login.dto.ts[0m:[93m4[0m:[93m16[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m4[0m     @IsEmail() email: string;
+[7m [0m [91m               ~~~~~[0m
+
+[96msrc/auth/dto/login.dto.ts[0m:[93m5[0m:[93m17[0m - [91merror[0m[90m TS2564: [0mProperty 'password' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m     @IsString() password: string;
+[7m [0m [91m                ~~~~~~~~[0m
+
+[96msrc/candidatos/dto/candidate-login.dto.ts[0m:[93m8[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m8[0m     email: string;
+[7m [0m [91m    ~~~~~[0m
+
+[96msrc/candidatos/dto/candidate-login.dto.ts[0m:[93m11[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'password' has no initializer and is not definitely assigned in the constructor.
+
+[7m11[0m     password: string;
+[7m  [0m [91m    ~~~~~~~~[0m
+
+[96msrc/candidatos/dto/candidate-register.dto.ts[0m:[93m6[0m:[93m17[0m - [91merror[0m[90m TS2564: [0mProperty 'name' has no initializer and is not definitely assigned in the constructor.
+
+[7m6[0m     @IsString() name: string;
+[7m [0m [91m                ~~~~[0m
+
+[96msrc/candidatos/dto/candidate-register.dto.ts[0m:[93m10[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m10[0m     email: string;
+[7m  [0m [91m    ~~~~~[0m
+
+[96msrc/candidatos/dto/candidate-register.dto.ts[0m:[93m13[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'password' has no initializer and is not definitely assigned in the constructor.
+
+[7m13[0m     password: string;
+[7m  [0m [91m    ~~~~~~~~[0m
+
+[96msrc/candidatos/dto/create-candidato.dto.ts[0m:[93m10[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'tenantSlug' has no initializer and is not definitely assigned in the constructor.
+
+[7m10[0m   tenantSlug: string; // Interno: quién crea decide el tenant
+[7m  [0m [91m  ~~~~~~~~~~[0m
+
+[96msrc/candidatos/dto/create-candidato.dto.ts[0m:[93m15[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'nombre' has no initializer and is not definitely assigned in the constructor.
+
+[7m15[0m   nombre: string;
+[7m  [0m [91m  ~~~~~~[0m
+
+[96msrc/candidatos/dto/create-candidato.dto.ts[0m:[93m20[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'email' has no initializer and is not definitely assigned in the constructor.
+
+[7m20[0m   email: string;
+[7m  [0m [91m  ~~~~~[0m
+
+[96msrc/cargos/dto/create-cargo.dto.ts[0m:[93m13[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'nombre' has no initializer and is not definitely assigned in the constructor.
+
+[7m13[0m     nombre: string;
+[7m  [0m [91m    ~~~~~~[0m
+
+[96msrc/entrevistas/dto/create-entrevista.dto.ts[0m:[93m5[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'tenantSlug' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m     tenantSlug: string;
+[7m [0m [91m    ~~~~~~~~~~[0m
+
+[96msrc/entrevistas/dto/create-entrevista.dto.ts[0m:[93m8[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'postulacionId' has no initializer and is not definitely assigned in the constructor.
+
+[7m8[0m     postulacionId: string;
+[7m [0m [91m    ~~~~~~~~~~~~~[0m
+
+[96msrc/entrevistas/dto/create-entrevista.dto.ts[0m:[93m11[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'tipo' has no initializer and is not definitely assigned in the constructor.
+
+[7m11[0m     tipo: string;
+[7m  [0m [91m    ~~~~[0m
+
+[96msrc/entrevistas/dto/create-entrevista.dto.ts[0m:[93m14[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'inicioTs' has no initializer and is not definitely assigned in the constructor.
+
+[7m14[0m     inicioTs: string;
+[7m  [0m [91m    ~~~~~~~~[0m
+
+[96msrc/entrevistas/dto/create-entrevista.dto.ts[0m:[93m17[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'finTs' has no initializer and is not definitely assigned in the constructor.
+
+[7m17[0m     finTs: string;
+[7m  [0m [91m    ~~~~~[0m
+
+[96msrc/feedback/dto/create-feedback.dto.ts[0m:[93m5[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'tenantSlug' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m     tenantSlug: string;
+[7m [0m [91m    ~~~~~~~~~~[0m
+
+[96msrc/feedback/dto/create-feedback.dto.ts[0m:[93m8[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'postulacionId' has no initializer and is not definitely assigned in the constructor.
+
+[7m8[0m     postulacionId: string;
+[7m [0m [91m    ~~~~~~~~~~~~~[0m
+
+[96msrc/feedback/dto/create-feedback.dto.ts[0m:[93m11[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'puntaje' has no initializer and is not definitely assigned in the constructor.
+
+[7m11[0m     puntaje: number;
+[7m  [0m [91m    ~~~~~~~[0m
+
+[96msrc/postulaciones/dto/create-postulacione.dto.ts[0m:[93m10[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'tenantSlug' has no initializer and is not definitely assigned in the constructor.
+
+[7m10[0m   tenantSlug: string;
+[7m  [0m [91m  ~~~~~~~~~~[0m
+
+[96msrc/postulaciones/dto/create-postulacione.dto.ts[0m:[93m14[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'vacanteId' has no initializer and is not definitely assigned in the constructor.
+
+[7m14[0m   vacanteId: string;
+[7m  [0m [91m  ~~~~~~~~~[0m
+
+[96msrc/roles-permisos/dto/create-roles-permiso.dto.ts[0m:[93m5[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'tenantSlug' has no initializer and is not definitely assigned in the constructor.
+
+[7m5[0m     tenantSlug: string;
+[7m [0m [91m    ~~~~~~~~~~[0m
+
+[96msrc/roles-permisos/dto/create-roles-permiso.dto.ts[0m:[93m8[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'name' has no initializer and is not definitely assigned in the constructor.
+
+[7m8[0m     name: string;
+[7m [0m [91m    ~~~~[0m
+
+[96msrc/roles-permisos/roles-permisos.controller.ts[0m:[93m11[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'permissions' has no initializer and is not definitely assigned in the constructor.
+
+[7m11[0m   permissions: string[];
+[7m  [0m [91m  ~~~~~~~~~~~[0m
+
+[96msrc/tenants/dto/create-tenant.dto.ts[0m:[93m6[0m:[93m5[0m - [91merror[0m[90m TS2564: [0mProperty 'name' has no initializer and is not definitely assigned in the constructor.
+
+[7m6[0m     name: string;
+[7m [0m [91m    ~~~~[0m
+
+[96msrc/vacantes/dto/create-vacante.dto.ts[0m:[93m10[0m:[93m3[0m - [91merror[0m[90m TS2564: [0mProperty 'cargoId' has no initializer and is not definitely assigned in the constructor.
+
+[7m10[0m   cargoId: string;
+[7m  [0m [91m  ~~~~~~~[0m
+
+[[90m12:41:11 p. m.[0m] Found 32 errors. Watching for file changes.
+

@@ -3,14 +3,14 @@ import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CandidateRegisterDto {
-    @IsString() name: string;
+    @IsString() name!: string;
 
     @IsEmail()
     @Transform(({ value }) => value?.toString().trim().toLowerCase())
-    email: string;
+    email!: string;
 
     @IsString() @MinLength(8)
-    password: string;
+    password!: string;
 
     @IsOptional() @IsString()
     telefono?: string;

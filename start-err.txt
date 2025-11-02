@@ -1,0 +1,195 @@
+[31m[Nest] 3176  - [39m30/10/2025, 10:46:50 p. m. [31m  ERROR[39m [38;5;3m[ExceptionHandler] [39mError: @prisma/client did not initialize yet. Please run "prisma generate" and try to import it again.
+    at new PrismaClient [90m(C:\Proyectos\backend-ats\[39mnode_modules\[4m.prisma[24m\client\default.js:43:11[90m)[39m
+    at new PrismaService [90m(C:\Proyectos\backend-ats\[39msrc\prisma\prisma.service.ts:5:8[90m)[39m
+    at Injector.instantiateClass [90m(C:\Proyectos\backend-ats\[39mnode_modules\[4m@nestjs[24m\core\injector\injector.js:418:19[90m)[39m
+    at callback [90m(C:\Proyectos\backend-ats\[39mnode_modules\[4m@nestjs[24m\core\injector\injector.js:70:45[90m)[39m
+    at async Injector.resolveConstructorParams [90m(C:\Proyectos\backend-ats\[39mnode_modules\[4m@nestjs[24m\core\injector\injector.js:170:24[90m)[39m
+    at async Injector.loadInstance [90m(C:\Proyectos\backend-ats\[39mnode_modules\[4m@nestjs[24m\core\injector\injector.js:75:13[90m)[39m
+    at async Injector.loadProvider [90m(C:\Proyectos\backend-ats\[39mnode_modules\[4m@nestjs[24m\core\injector\injector.js:103:9[90m)[39m
+    at async [90mC:\Proyectos\backend-ats\[39mnode_modules\[4m@nestjs[24m\core\injector\instance-loader.js:56:13
+    at async Promise.all (index 3)
+    at async InstanceLoader.createInstancesOfProviders [90m(C:\Proyectos\backend-ats\[39mnode_modules\[4m@nestjs[24m\core\injector\instance-loader.js:55:9[90m)[39m
+node:internal/modules/cjs/loader:1252
+  throw err;
+  ^
+
+Error: Cannot find module './dto/bootstrap-superadmin.dto'
+Require stack:
+- C:\Proyectos\backend-ats\dist\auth\auth.controller.js
+- C:\Proyectos\backend-ats\dist\auth\auth.module.js
+- C:\Proyectos\backend-ats\dist\app.module.js
+- C:\Proyectos\backend-ats\dist\main.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1249:15)
+    at Function._load (node:internal/modules/cjs/loader:1075:27)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Module.require (node:internal/modules/cjs/loader:1340:12)
+    at require (node:internal/modules/helpers:138:16)
+    at Object.<anonymous> (C:\Proyectos\backend-ats\src\auth\auth.controller.ts:8:1)
+    at Module._compile (node:internal/modules/cjs/loader:1565:14)
+    at Object..js (node:internal/modules/cjs/loader:1708:10)
+    at Module.load (node:internal/modules/cjs/loader:1318:32) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Proyectos\\backend-ats\\dist\\auth\\auth.controller.js',
+    'C:\\Proyectos\\backend-ats\\dist\\auth\\auth.module.js',
+    'C:\\Proyectos\\backend-ats\\dist\\app.module.js',
+    'C:\\Proyectos\\backend-ats\\dist\\main.js'
+  ]
+}
+
+Node.js v22.12.0
+C:\Proyectos\backend-ats\node_modules\@prisma\client\src\runtime\core\engines\library\LibraryEngine.ts:440
+          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
+                ^
+
+
+PrismaClientInitializationError: error: Environment variable not found: DATABASE_URL.
+  -->  schema.prisma:13
+   | 
+12 |   provider = "mysql"
+13 |   url      = env("DATABASE_URL")
+   | 
+
+Validation Error Count: 1
+    at r (C:\Proyectos\backend-ats\node_modules\@prisma\client\src\runtime\core\engines\library\LibraryEngine.ts:440:17)
+    at async Proxy.onModuleInit (C:\Proyectos\backend-ats\src\prisma\prisma.service.ts:7:9)
+    at async Promise.all (index 0)
+    at async callModuleInitHook (C:\Proyectos\backend-ats\node_modules\@nestjs\core\hooks\on-module-init.hook.js:43:5)
+    at async NestApplication.callInitHook (C:\Proyectos\backend-ats\node_modules\@nestjs\core\nest-application-context.js:242:13)
+    at async NestApplication.init (C:\Proyectos\backend-ats\node_modules\@nestjs\core\nest-application.js:103:9)
+    at async NestApplication.listen (C:\Proyectos\backend-ats\node_modules\@nestjs\core\nest-application.js:175:13)
+    at async bootstrap (C:\Proyectos\backend-ats\src\main.ts:46:3) {
+  clientVersion: '6.15.0',
+  errorCode: 'P1012',
+  retryable: undefined
+}
+
+Node.js v22.12.0
+C:\Proyectos\backend-ats\node_modules\@prisma\client\src\runtime\core\engines\library\LibraryEngine.ts:440
+          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
+                ^
+
+
+PrismaClientInitializationError: error: Environment variable not found: DATABASE_URL.
+  -->  schema.prisma:13
+   | 
+12 |   provider = "mysql"
+13 |   url      = env("DATABASE_URL")
+   | 
+
+Validation Error Count: 1
+    at r (C:\Proyectos\backend-ats\node_modules\@prisma\client\src\runtime\core\engines\library\LibraryEngine.ts:440:17)
+    at async Proxy.onModuleInit (C:\Proyectos\backend-ats\src\prisma\prisma.service.ts:7:9)
+    at async Promise.all (index 0)
+    at async callModuleInitHook (C:\Proyectos\backend-ats\node_modules\@nestjs\core\hooks\on-module-init.hook.js:43:5)
+    at async NestApplication.callInitHook (C:\Proyectos\backend-ats\node_modules\@nestjs\core\nest-application-context.js:242:13)
+    at async NestApplication.init (C:\Proyectos\backend-ats\node_modules\@nestjs\core\nest-application.js:103:9)
+    at async NestApplication.listen (C:\Proyectos\backend-ats\node_modules\@nestjs\core\nest-application.js:175:13)
+    at async bootstrap (C:\Proyectos\backend-ats\src\main.ts:46:3) {
+  clientVersion: '6.15.0',
+  errorCode: 'P1012',
+  retryable: undefined
+}
+
+Node.js v22.12.0
+node:internal/modules/cjs/loader:1252
+  throw err;
+  ^
+
+Error: Cannot find module './dto/bootstrap-superadmin.dto'
+Require stack:
+- C:\Proyectos\backend-ats\dist\auth\auth.controller.js
+- C:\Proyectos\backend-ats\dist\auth\auth.module.js
+- C:\Proyectos\backend-ats\dist\app.module.js
+- C:\Proyectos\backend-ats\dist\main.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1249:15)
+    at Function._load (node:internal/modules/cjs/loader:1075:27)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Module.require (node:internal/modules/cjs/loader:1340:12)
+    at require (node:internal/modules/helpers:138:16)
+    at Object.<anonymous> (C:\Proyectos\backend-ats\src\auth\auth.controller.ts:8:1)
+    at Module._compile (node:internal/modules/cjs/loader:1565:14)
+    at Object..js (node:internal/modules/cjs/loader:1708:10)
+    at Module.load (node:internal/modules/cjs/loader:1318:32) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Proyectos\\backend-ats\\dist\\auth\\auth.controller.js',
+    'C:\\Proyectos\\backend-ats\\dist\\auth\\auth.module.js',
+    'C:\\Proyectos\\backend-ats\\dist\\app.module.js',
+    'C:\\Proyectos\\backend-ats\\dist\\main.js'
+  ]
+}
+
+Node.js v22.12.0
+node:internal/modules/cjs/loader:1252
+  throw err;
+  ^
+
+Error: Cannot find module 'C:\Proyectos\backend-ats\dist\main'
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1249:15)
+    at Function._load (node:internal/modules/cjs/loader:1075:27)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+    at node:internal/main/run_main_module:36:49 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v22.12.0
+C:\Proyectos\backend-ats\node_modules\@prisma\client\src\runtime\core\engines\library\LibraryEngine.ts:440
+          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
+                ^
+
+
+PrismaClientInitializationError: error: Environment variable not found: DATABASE_URL.
+  -->  schema.prisma:13
+   | 
+12 |   provider = "mysql"
+13 |   url      = env("DATABASE_URL")
+   | 
+
+Validation Error Count: 1
+    at r (C:\Proyectos\backend-ats\node_modules\@prisma\client\src\runtime\core\engines\library\LibraryEngine.ts:440:17)
+    at async Proxy.onModuleInit (C:\Proyectos\backend-ats\src\prisma\prisma.service.ts:7:9)
+    at async Promise.all (index 0)
+    at async callModuleInitHook (C:\Proyectos\backend-ats\node_modules\@nestjs\core\hooks\on-module-init.hook.js:43:5)
+    at async NestApplication.callInitHook (C:\Proyectos\backend-ats\node_modules\@nestjs\core\nest-application-context.js:242:13)
+    at async NestApplication.init (C:\Proyectos\backend-ats\node_modules\@nestjs\core\nest-application.js:103:9)
+    at async NestApplication.listen (C:\Proyectos\backend-ats\node_modules\@nestjs\core\nest-application.js:175:13)
+    at async bootstrap (C:\Proyectos\backend-ats\src\main.ts:46:3) {
+  clientVersion: '6.15.0',
+  errorCode: 'P1012',
+  retryable: undefined
+}
+
+Node.js v22.12.0
+C:\Proyectos\backend-ats\node_modules\@prisma\client\src\runtime\core\engines\library\LibraryEngine.ts:440
+          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
+                ^
+
+
+PrismaClientInitializationError: error: Environment variable not found: DATABASE_URL.
+  -->  schema.prisma:13
+   | 
+12 |   provider = "mysql"
+13 |   url      = env("DATABASE_URL")
+   | 
+
+Validation Error Count: 1
+    at r (C:\Proyectos\backend-ats\node_modules\@prisma\client\src\runtime\core\engines\library\LibraryEngine.ts:440:17)
+    at async Proxy.onModuleInit (C:\Proyectos\backend-ats\src\prisma\prisma.service.ts:7:9)
+    at async Promise.all (index 0)
+    at async callModuleInitHook (C:\Proyectos\backend-ats\node_modules\@nestjs\core\hooks\on-module-init.hook.js:43:5)
+    at async NestApplication.callInitHook (C:\Proyectos\backend-ats\node_modules\@nestjs\core\nest-application-context.js:242:13)
+    at async NestApplication.init (C:\Proyectos\backend-ats\node_modules\@nestjs\core\nest-application.js:103:9)
+    at async NestApplication.listen (C:\Proyectos\backend-ats\node_modules\@nestjs\core\nest-application.js:175:13)
+    at async bootstrap (C:\Proyectos\backend-ats\src\main.ts:46:3) {
+  clientVersion: '6.15.0',
+  errorCode: 'P1012',
+  retryable: undefined
+}
+
+Node.js v22.12.0

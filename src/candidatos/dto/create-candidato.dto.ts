@@ -7,17 +7,17 @@ export class CreateCandidatoDto {
   @ApiProperty()
   @IsString() @IsNotEmpty()
   @Transform(({ value }) => value?.toString().trim().toLowerCase())
-  tenantSlug: string; // Interno: quién crea decide el tenant
+  tenantSlug!: string; // Interno: quién crea decide el tenant
 
   @ApiProperty()
   @IsString() @IsNotEmpty()
   @Transform(({ value }) => value?.toString().trim())
-  nombre: string;
+  nombre!: string;
 
   @ApiProperty()
   @IsEmail()
   @Transform(({ value }) => value?.toString().trim().toLowerCase())
-  email: string;
+  email!: string;
 
   @ApiPropertyOptional()
   @IsOptional() @IsString()
