@@ -3,13 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const DEFAULT_EMAIL = "super@tuempresa.com";
-const DEFAULT_PASSWORD = "Super123!";
 
 function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [correo, setCorreo] = useState(DEFAULT_EMAIL);
-  const [clave, setClave] = useState(DEFAULT_PASSWORD);
+  const [clave, setClave] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
