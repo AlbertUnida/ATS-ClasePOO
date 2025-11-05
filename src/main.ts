@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { join } from 'path';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,6 +17,8 @@ async function bootstrap() {
 
   // Validación global (Swagger muestra mejor los DTO)
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+
+  app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
 
   // Swagger
   const config = new DocumentBuilder()

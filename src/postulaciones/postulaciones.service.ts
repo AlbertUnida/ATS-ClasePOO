@@ -5,7 +5,7 @@ import { CreatePostulacionDto } from './dto/create-postulacione.dto';
 
 @Injectable()
 export class PostulacionesService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   /**
    * Crea una nueva postulación.
@@ -23,7 +23,7 @@ export class PostulacionesService {
       ip?: string;
       userAgent?: string;
       path?: string;
-    }
+    },
   ) {
     const tenant = await this.prisma.tenants.findUnique({
       where: { slug: dto.tenantSlug },
@@ -37,10 +37,17 @@ export class PostulacionesService {
       throw new BadRequestException('Vacante inválida para este tenant');
     }
 
-    const candidato = await this.prisma.candidatos.findUnique({
+    let candidato = await this.prisma.candidatos.findUnique({
       where: { id: candidatoId },
     });
-    if (!candidato || candidato.tenantId !== tenant.id) {
+    if (!candidato) throw new NotFoundException('Candidato no encontrado');
+
+    if (!candidato.tenantId) {
+      candidato = await this.prisma.candidatos.update({
+        where: { id: candidato.id },
+        data: { tenantId: tenant.id },
+      });
+    } else if (candidato.tenantId !== tenant.id) {
       throw new BadRequestException('Candidato inválido para este tenant');
     }
 
@@ -63,7 +70,6 @@ export class PostulacionesService {
         },
       });
 
-      // Evento de postulación inicial
       await this.prisma.eventoPostulaciones.create({
         data: {
           tenantId: tenant.id,
@@ -90,7 +96,6 @@ export class PostulacionesService {
         },
       });
 
-
       return postulacion;
     } catch (e: any) {
       if (e.code === 'P2002') {
@@ -103,11 +108,14 @@ export class PostulacionesService {
   /**
    * Lista postulaciones filtrando por tenant, vacante, candidato o estado.
    */
-  async list(tenantSlug: string, filters: {
-    vacanteId?: string;
-    candidatoId?: string;
-    estado?: string;
-  }) {
+  async list(
+    tenantSlug: string,
+    filters: {
+      vacanteId?: string;
+      candidatoId?: string;
+      estado?: string;
+    },
+  ) {
     const t = await this.prisma.tenants.findUnique({
       where: { slug: tenantSlug },
     });
@@ -132,3 +140,4 @@ export class PostulacionesService {
     });
   }
 }
+

@@ -116,15 +116,8 @@ npx prisma migrate status --schema=src/prisma/schema.prisma
 
 docker exec -it <nombre_del_contenedor> /bin/sh
 
-ahora otra consulta, como habra roles, el candidato sera un rol tambien ?? PORQUE estoy pensando ahora asi -- Yo soy la empresa desarrolladora del sistema de reclutamiento, y todos los desarrolladores tienen rol superadministrador (acceso a todo) el cliente/empresa se le puede dar un rol administrador (acceso limitado el rol superadmin decide que acceso darle) para el caso en donde la empresa tenga una area de tic se le puede dar un rol de reclutador (acceso limitado el rol superadmin decide que acceso darle) ente otros roles, creo que el sistema ya esta contemplado para crear varios roles no ? pero eso si asignar permisos a roles no superadministradores
-
-
 npm i @nestjs/jwt @nestjs/passport passport passport-jwt argon2 @prisma/client
 npm i -D @types/cookie-parser
-
-
-
-
 
 
 📈 Prioridad y Tareas
@@ -159,12 +152,8 @@ Recolección de feedback.
 
 Crear endpoints para obtener métricas del reclutamiento.
 
-
-
 tengo un proyecto backned con nestjs + prisma, docker un bd mysql que lo levanto en docker, la api y la base de datos lo tengo en un mismo dokcer compose.yml , 
 el proyecto lo subi a repositorio github, mi consulta es cuando haga un gitclone que debo tener instalado para levantar bien el proyecto ?
-
-
 
 ok, como seria lo mejor tengo el rol superadmin, creo un nuevo tenants/empresa/cliente , luego debo crear usuarios para esa empresa, pero antes debo crear ya el rol o roles  ?? PORQUE TENGO OTRO MODULO DE PERMISOS Y ROLES, permisos y roles serian dos cosas diferentes no ?? LOS ROLES BASICOS para una empresa es admin, y reclutador , para el tema de los candidatos no se como deberia ser aahora porque en teoria ya va a poder a ver todas las postulaciones, y al registrarse podra postularse al que quiera, pero no solo a una, sino a las que el quiera, pero la empresa cliente puede pedir mas roles asi que se debe tener en cuenta que puede tener x cantidad de roles, por otro lado para ganar escalabilidad y flexibilidad, pensando en el front (otro desarrollador) los roles "no superadmin" estaran limitados segun lo que el superadmin le quiera dar, 
 
@@ -305,19 +294,19 @@ Relación con CandidatoCuentas
 
 Relaciones con Postulaciones y Tenants → ✔️
 
-✍️ 2. DTOs necesarios → ✅ Ya tenés todos
+2. DTOs necesarios → ✅ Ya tenés todos
 DTO	Propósito	Estado
 CreateCandidatoDto	Crear desde backend (admin)	✅
 CandidateRegisterDto	Registro público desde frontend	✅
 CandidateLoginDto	Login público	✅
 UpdateCandidatoDto	(opcional) editar perfil luego	🔜 (podés hacerlo simple más adelante)
-🧠 3. Service (CandidatosService)
+3. Service (CandidatosService)
 Método	Propósito	Estado
 create()	Solo para admin	✅
 register()	Registro de candidatos desde frontend	🚧 Debés implementarlo (te ayudo abajo)
 findOne()	Obtener datos del candidato logueado	🚧 Recomendado
 update()	(opcional) actualizar datos del perfil	🔜
-🎛️ 4. Controller (CandidatosController)
+4. Controller (CandidatosController)
 Ruta	Método	Comentario
 POST /candidatos	create()	Protegido, solo admin
 POST /auth/candidatos/register	register()	Público, autoregistro
@@ -326,7 +315,7 @@ PATCH /candidatos/me	update()	(Opcional) permitir editar perfil
 
 Para me, usás el token JWT para identificar al candidato (decodificando cuentaId)
 
-🛡️ 5. Autenticación (AuthService)
+5. Autenticación (AuthService)
 Función	Propósito
 hashPassword()	Hashear al registrar
 comparePassword()	Verificar al loguear

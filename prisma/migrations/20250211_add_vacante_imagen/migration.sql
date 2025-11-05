@@ -1,0 +1,2 @@
+﻿ALTER TABLE `Vacantes`
+  ADD COLUMN `imagenUrl` VARCHAR(255) NULL;

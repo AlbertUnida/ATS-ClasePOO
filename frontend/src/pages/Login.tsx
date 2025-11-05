@@ -1,66 +1,95 @@
-import { FormEvent, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+﻿import { FormEvent, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
+const DEFAULT_EMAIL = "super@tuempresa.com";
+const DEFAULT_PASSWORD = "Super123!";
 
 function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [email, setEmail] = useState('super@tuempresa.com');
-  const [password, setPassword] = useState('Super123!');
-  const [tenantSlug, setTenantSlug] = useState('root');
+  const [correo, setCorreo] = useState(DEFAULT_EMAIL);
+  const [clave, setClave] = useState(DEFAULT_PASSWORD);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      await login({ email, password, tenantSlug });
-      navigate('/panel', { replace: true });
+      await login({ email: correo, password: clave });
+      navigate("/panel", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error inesperado');
+      setError(err instanceof Error ? err.message : "No fue posible iniciar sesion");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <section className="card">
-      <h2>Iniciar sesión</h2>
-      <p>
-        Usa las credenciales del usuario que creaste en el backend. El formulario enviará la petición al endpoint{' '}
-        <code>POST /auth/login</code> y guardará la sesión en esta aplicación.
-      </p>
+    <div className="login-screen">
+      <section className="login-screen__hero">
+        <div className="login-screen__mark">
+          <span className="login-screen__mark-pill">Talent Flow ats</span>
+          <h1>Reclutá desde un panel unificado</h1>
+          <p>
+            Supervisa cada vacante, entrevista y oferta en tiempo real. Manten a todo el equipo alineado y acelera la
+            contratacion de talento clave.
+          </p>
+        </div>
+        <div className="login-screen__badge" aria-hidden>
+          <span>Te Conectamos</span>
+          <span>con los mejores</span>
+        </div>
+      </section>
 
-      <form className="form" onSubmit={handleSubmit}>
-        <label>
-          Correo electrónico
-          <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-        </label>
-        <label>
-          Contraseña
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            required
-            autoComplete="current-password"
-          />
-        </label>
-        <label>
-          Tenant (slug)
-          <input value={tenantSlug} onChange={(event) => setTenantSlug(event.target.value)} placeholder="ej: tecnoedil" />
-        </label>
+      <section className="login-screen__panel">
+        <div className="login-card">
+          <h2>Ingresa a Talent Flow ATS</h2>
+          <p className="login-card__subtitle">
+            Accede con tu usuario corporativo y continua donde dejaste tu trabajo.
+          </p>
 
-        <button type="submit" className="button" disabled={loading}>
-          {loading ? 'Verificando...' : 'Iniciar sesión'}
-        </button>
-      </form>
+          <form className="login-form" onSubmit={handleSubmit}>
+            <label>
+              Correo electronico
+              <input
+                type="email"
+                value={correo}
+                onChange={(event) => setCorreo(event.target.value)}
+                required
+                autoComplete="username"
+              />
+            </label>
 
-      {error && <div className="alert alert--error">{error}</div>}
-    </section>
+            <label>
+              Contrasena
+              <input
+                type="password"
+                value={clave}
+                onChange={(event) => setClave(event.target.value)}
+                required
+                autoComplete="current-password"
+                minLength={8}
+              />
+            </label>
+
+            <button type="submit" className="button button--primary" disabled={loading}>
+              {loading ? "Verificando..." : "Ingresar"}
+            </button>
+          </form>
+
+          <div className="login-card__footer">
+            <a href="#">Olvidaste tu acceso?</a>
+            <small>Soporte: talento@tuempresa.com</small>
+          </div>
+
+          {error && <div className="alert alert--error">{error}</div>}
+        </div>
+      </section>
+    </div>
   );
 }
 

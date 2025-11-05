@@ -1,4 +1,4 @@
-﻿import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import {
   createCargo,
   createVacante,
@@ -6,59 +6,156 @@ import {
   fetchCargos,
   fetchVacantesPorTenant,
   VacantePrivada,
-} from '../api/backend';
-import { useAuth } from '../context/AuthContext';
+  CargoItem,
+  UpdateVacantePayload,
+  uploadVacanteImagen,
+} from "../api/backend";
+import { useAuth } from "../context/AuthContext";
 
-const ESTADOS = ['abierta', 'pausada', 'cerrada'] as const;
-type EstadoVacante = typeof ESTADOS[number];
+const ESTADOS = ["abierta", "pausada", "cerrada"] as const;
+type EstadoVacante = (typeof ESTADOS)[number];
+
+const ESTADO_TONE: Record<string, { label: string; tone: "success" | "warning" | "neutral" | "danger" }> = {
+  abierta: { label: "Abierta", tone: "success" },
+  pausada: { label: "Pausada", tone: "warning" },
+  cerrada: { label: "Cerrada", tone: "neutral" },
+};
+
+const CONTRATOS = ["Full time", "Part time", "Temporal", "Consultoria"];
 
 function VacantesTenant() {
   const { user } = useAuth();
-  const tenantSlug = user?.tenant ?? '';
-  const [estadoFiltro, setEstadoFiltro] = useState<string>('');
-  const [loadingVacantes, setLoadingVacantes] = useState(false);
+  const tenantSlug = user?.tenant ?? "";
+
+  const [estadoFiltro, setEstadoFiltro] = useState<string>("");
   const [vacantes, setVacantes] = useState<VacantePrivada[]>([]);
   const [vacantesError, setVacantesError] = useState<string | null>(null);
+  const [loadingVacantes, setLoadingVacantes] = useState(false);
 
-  const [cargos, setCargos] = useState<Array<{ id: string; nombre: string }>>([]);
-  const [cargosLoading, setCargosLoading] = useState(false);
+  const [cargos, setCargos] = useState<CargoItem[]>([]);
+  const [loadingCargos, setLoadingCargos] = useState(false);
   const [cargosError, setCargosError] = useState<string | null>(null);
 
-  const [cargoNombre, setCargoNombre] = useState('');
-  const [cargoCompetencias, setCargoCompetencias] = useState('');
-  const [creandoCargo, setCreandoCargo] = useState(false);
-  const [cargoMessage, setCargoMessage] = useState<string | null>(null);
-  const [cargoErrorMessage, setCargoErrorMessage] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const [vacanteCargoId, setVacanteCargoId] = useState('');
-  const [vacanteUbicacion, setVacanteUbicacion] = useState('');
-  const [vacanteTipoContrato, setVacanteTipoContrato] = useState('');
-  const [vacanteEstado, setVacanteEstado] = useState<EstadoVacante>('abierta');
-  const [creandoVacante, setCreandoVacante] = useState(false);
-  const [vacanteMessage, setVacanteMessage] = useState<string | null>(null);
-  const [vacanteErrorMessage, setVacanteErrorMessage] = useState<string | null>(null);
+  const [createCargoNombre, setCreateCargoNombre] = useState("");
+  const [createCargoCompetencias, setCreateCargoCompetencias] = useState("");
+  const [creatingCargo, setCreatingCargo] = useState(false);
+  const [createCargoMessage, setCreateCargoMessage] = useState<string | null>(null);
+  const [createCargoError, setCreateCargoError] = useState<string | null>(null);
+
+  const [createVacanteForm, setCreateVacanteForm] = useState({
+    cargoId: "",
+    ubicacion: "",
+    tipoContrato: "",
+    estado: "abierta" as EstadoVacante,
+  });
+  const [creatingVacante, setCreatingVacante] = useState(false);
+  const [createVacanteMessage, setCreateVacanteMessage] = useState<string | null>(null);
+  const [createVacanteError, setCreateVacanteError] = useState<string | null>(null);
+
+  const [editForm, setEditForm] = useState({
+    cargoId: "",
+    ubicacion: "",
+    tipoContrato: "",
+    estado: "abierta" as EstadoVacante,
+  });
+  const [savingVacante, setSavingVacante] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState<string | null>(null);
+  const [updateError, setUpdateError] = useState<string | null>(null);
+
+  const [createVacanteFile, setCreateVacanteFile] = useState<File | null>(null);
+  const [createVacantePreview, setCreateVacantePreview] = useState<string | null>(null);
+
+  const [editVacanteFile, setEditVacanteFile] = useState<File | null>(null);
+  const [editVacantePreview, setEditVacantePreview] = useState<string | null>(null);
+
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4050";
+  const resolveAssetUrl = (path?: string | null) => {
+    if (!path) return null;
+    if (path.startsWith("http://") || path.startsWith("https://")) return path;
+    return `${apiBaseUrl}${path}`;
+  };
 
   const puedeGestionar = useMemo(() => {
     if (!user) return false;
     if (user.isSuperAdmin) return true;
-    return user.roles.includes('ADMIN') || user.roles.includes('RECLUTADOR');
+    return user.roles.includes("ADMIN") || user.roles.includes("RECLUTADOR");
   }, [user]);
+
+const selectedVacante = useMemo(
+    () => (selectedId ? vacantes.find((item) => item.id === selectedId) ?? null : null),
+    [selectedId, vacantes],
+  );
+
+  const canEditSelected = useMemo(() => {
+    if (!selectedVacante) return false;
+    if (user?.isSuperAdmin) return true;
+    return selectedVacante.createdByUserId ? selectedVacante.createdByUserId === user?.id : false;
+  }, [selectedVacante, user]);
+
+  const stats = useMemo(() => {
+    if (!vacantes.length) {
+      return [
+        { label: "Total", value: 0, tone: "neutral" as const },
+        { label: "Abiertas", value: 0, tone: "success" as const },
+        { label: "Pausadas", value: 0, tone: "warning" as const },
+      ];
+    }
+    const abiertas = vacantes.filter((item) => item.estado.toLowerCase() === "abierta").length;
+    const pausadas = vacantes.filter((item) => item.estado.toLowerCase() === "pausada").length;
+    const cerradas = vacantes.filter((item) => item.estado.toLowerCase() === "cerrada").length;
+    return [
+      { label: "Total", value: vacantes.length, tone: "neutral" as const },
+      { label: "Abiertas", value: abiertas, tone: "success" as const },
+      { label: "Pausadas", value: pausadas, tone: "warning" as const },
+      { label: "Cerradas", value: cerradas, tone: "neutral" as const },
+    ];
+  }, [vacantes]);
 
   useEffect(() => {
     if (tenantSlug && puedeGestionar) {
-      loadCargos();
-      loadVacantes();
+      void loadCargos();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenantSlug, puedeGestionar]);
 
-  const applySelectedVacante = (vacante: VacantePrivada) => {
-    setSelectedVacante(vacante);
-    setEditVacanteCargoId(vacante.cargo?.id ?? (vacante as any).cargoId ?? '');
-    setEditVacanteUbicacion(vacante.ubicacion ?? '');
-    setEditVacanteTipoContrato(vacante.tipoContrato ?? '');
-    setEditVacanteEstado((vacante.estado as EstadoVacante) ?? 'abierta');
-      };
+  useEffect(() => {
+    if (tenantSlug && puedeGestionar) {
+      void loadVacantes();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenantSlug, puedeGestionar, estadoFiltro]);
+
+useEffect(() => {
+  if (selectedVacante) {
+    setEditForm({
+      cargoId: selectedVacante.cargo?.id ?? (selectedVacante as any).cargoId ?? "",
+      ubicacion: selectedVacante.ubicacion ?? "",
+      tipoContrato: selectedVacante.tipoContrato ?? "",
+      estado: (selectedVacante.estado as EstadoVacante) ?? "abierta",
+    });
+    setEditVacanteFile(null);
+    setEditVacantePreview(resolveAssetUrl(selectedVacante.imagenUrl));
+  } else {
+    setEditVacantePreview(null);
+  }
+}, [selectedVacante, resolveAssetUrl]);
+
+useEffect(() => {
+  return () => {
+    if (createVacantePreview && createVacantePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(createVacantePreview);
+    }
+  };
+}, [createVacantePreview]);
+
+useEffect(() => {
+  return () => {
+    if (editVacantePreview && editVacantePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(editVacantePreview);
+    }
+  };
+}, [editVacantePreview]);
 
   const loadVacantes = async () => {
     if (!tenantSlug) return;
@@ -67,9 +164,21 @@ function VacantesTenant() {
     try {
       const data = await fetchVacantesPorTenant(tenantSlug, estadoFiltro || undefined);
       setVacantes(data);
+      if (!selectedId && data.length) {
+        setSelectedId(data[0].id);
+      } else if (selectedId) {
+        const stillExists = data.some((item) => item.id === selectedId);
+        if (!stillExists && data.length) {
+          setSelectedId(data[0].id);
+        }
+        if (!stillExists && !data.length) {
+          setSelectedId(null);
+        }
+      }
     } catch (err) {
-      setVacantesError(err instanceof Error ? err.message : 'No se pudieron cargar las vacantes');
+      setVacantesError(err instanceof Error ? err.message : "No se pudieron cargar las vacantes.");
       setVacantes([]);
+      setSelectedId(null);
     } finally {
       setLoadingVacantes(false);
     }
@@ -77,299 +186,537 @@ function VacantesTenant() {
 
   const loadCargos = async () => {
     if (!tenantSlug) return;
-    setCargosLoading(true);
+    setLoadingCargos(true);
     setCargosError(null);
     try {
       const list = await fetchCargos(tenantSlug);
       setCargos(list);
     } catch (err) {
-      setCargosError(err instanceof Error ? err.message : 'No se pudieron obtener los cargos');
+      setCargosError(err instanceof Error ? err.message : "No se pudieron obtener los cargos.");
       setCargos([]);
     } finally {
-      setCargosLoading(false);
+      setLoadingCargos(false);
     }
   };
 
-  const handleBuscarVacantes = async (event: FormEvent) => {
-    event.preventDefault();
-    await loadVacantes();
+  const handleCreateFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (createVacantePreview && createVacantePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(createVacantePreview);
+    }
+    const file = event.target.files?.[0] ?? null;
+    if (!file) {
+      setCreateVacanteFile(null);
+      setCreateVacantePreview(null);
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      setCreateVacanteError("Solo se permiten archivos de imagen (jpg o png).");
+      setCreateVacanteFile(null);
+      setCreateVacantePreview(null);
+      event.target.value = "";
+      return;
+    }
+    setCreateVacanteError(null);
+    setCreateVacanteFile(file);
+    setCreateVacantePreview(URL.createObjectURL(file));
   };
 
-  const handleCrearCargo = async (event: FormEvent) => {
+  const handleEditFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (editVacantePreview && editVacantePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(editVacantePreview);
+    }
+    const file = event.target.files?.[0] ?? null;
+    if (!file) {
+      setEditVacanteFile(null);
+      setEditVacantePreview(resolveAssetUrl(selectedVacante?.imagenUrl));
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      setUpdateError("Solo se permiten archivos de imagen (jpg o png).");
+      setEditVacanteFile(null);
+      setEditVacantePreview(resolveAssetUrl(selectedVacante?.imagenUrl));
+      event.target.value = "";
+      return;
+    }
+    setUpdateError(null);
+    setEditVacanteFile(file);
+    setEditVacantePreview(URL.createObjectURL(file));
+  };
+
+  const handleCrearCargo = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!puedeGestionar) return;
-    setCreandoCargo(true);
-    setCargoMessage(null);
-    setCargoErrorMessage(null);
+    setCreatingCargo(true);
+    setCreateCargoMessage(null);
+    setCreateCargoError(null);
+
     try {
-      let competenciasObj: Record<string, any> | undefined;
-      if (cargoCompetencias.trim()) {
+      let competenciasObj: Record<string, unknown> | undefined;
+      if (createCargoCompetencias.trim()) {
         try {
-          competenciasObj = JSON.parse(cargoCompetencias);
+          competenciasObj = JSON.parse(createCargoCompetencias);
         } catch (jsonError) {
-          throw new Error('Las competencias deben ser un JSON válido.');
+          throw new Error("Las competencias deben estar en formato JSON valido.");
         }
       }
-      await createCargo({ nombre: cargoNombre.trim(), competencias: competenciasObj });
-      setCargoMessage('Cargo creado correctamente.');
-      setCargoNombre('');
-      setCargoCompetencias('');
+      await createCargo({ nombre: createCargoNombre.trim(), competencias: competenciasObj });
+      setCreateCargoMessage("Cargo creado correctamente.");
+      setCreateCargoNombre("");
+      setCreateCargoCompetencias("");
       await loadCargos();
     } catch (err) {
-      setCargoErrorMessage(err instanceof Error ? err.message : 'Error al crear el cargo');
+      setCreateCargoError(err instanceof Error ? err.message : "No se pudo crear el cargo.");
     } finally {
-      setCreandoCargo(false);
+      setCreatingCargo(false);
     }
   };
 
-  const handleCrearVacante = async (event: FormEvent) => {
+  const handleCrearVacante = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!puedeGestionar) return;
-    if (!vacanteCargoId) {
-      setVacanteErrorMessage('Selecciona un cargo para la nueva vacante.');
+    if (!createVacanteForm.cargoId) {
+      setCreateVacanteError("Selecciona un cargo antes de crear la vacante.");
       return;
     }
-    setCreandoVacante(true);
-    setVacanteMessage(null);
-    setVacanteErrorMessage(null);
+    setCreatingVacante(true);
+    setCreateVacanteMessage(null);
+    setCreateVacanteError(null);
+
     try {
-      await createVacante({
-        cargoId: vacanteCargoId,
-        ubicacion: vacanteUbicacion.trim() || undefined,
-        tipoContrato: vacanteTipoContrato.trim() || undefined,
-        estado: vacanteEstado,
+      const nueva = await createVacante({
+        cargoId: createVacanteForm.cargoId,
+        ubicacion: createVacanteForm.ubicacion.trim() || undefined,
+        tipoContrato: createVacanteForm.tipoContrato.trim() || undefined,
+        estado: createVacanteForm.estado,
       });
-      setVacanteMessage('Vacante creada correctamente.');
-      setVacanteCargoId('');
-      setVacanteUbicacion('');
-      setVacanteTipoContrato('');
-      setVacanteEstado('abierta');
+      if (createVacanteFile) {
+        await uploadVacanteImagen(nueva.id, createVacanteFile);
+      }
+      setCreateVacanteMessage(
+        createVacanteFile ? "Vacante creada y la imagen se guardó correctamente." : "Vacante creada correctamente.",
+      );
+      setCreateVacanteForm({
+        cargoId: "",
+        ubicacion: "",
+        tipoContrato: "",
+        estado: "abierta",
+      });
+      setCreateVacanteFile(null);
+      setCreateVacantePreview(null);
       await loadVacantes();
     } catch (err) {
-      setVacanteErrorMessage(err instanceof Error ? err.message : 'No se pudo crear la vacante');
+      setCreateVacanteError(err instanceof Error ? err.message : "No se pudo crear la vacante.");
     } finally {
-      setCreandoVacante(false);
+      setCreatingVacante(false);
     }
   };
 
-  const handleSelectVacante = (vacante: VacantePrivada) => {
-    setEditVacanteMessage(null);
-    setEditVacanteError(null);
-    applySelectedVacante(vacante);
-  };
-
-  const handleActualizarVacante = async (event: FormEvent) => {
+  const handleActualizarVacante = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!selectedVacante) return;
-
-    const payload: Parameters<typeof updateVacante>[1] = {};
-
-    const originalCargoId = (selectedVacante as any).cargoId ?? selectedVacante.cargo?.id ?? '';
-    if (editVacanteCargoId && editVacanteCargoId !== originalCargoId) {
-      payload.cargoId = editVacanteCargoId;
-    }
-    if (editVacanteUbicacion.trim() !== (selectedVacante.ubicacion ?? '')) {
-      payload.ubicacion = editVacanteUbicacion.trim() || undefined;
-    }
-    if (editVacanteTipoContrato.trim() !== (selectedVacante.tipoContrato ?? '')) {
-      payload.tipoContrato = editVacanteTipoContrato.trim() || undefined;
-    }
-    if (editVacanteEstado && editVacanteEstado !== selectedVacante.estado) {
-      payload.estado = editVacanteEstado;
-    }
-
-    if (Object.keys(payload).length === 0) {
-      setEditVacanteError('No hay cambios para actualizar.');
+    if (!puedeGestionar || !selectedVacante) return;
+    if (!canEditSelected) {
+      setUpdateError("Solo el autor de la vacante o un superadmin pueden actualizarla.");
       return;
     }
 
-    setActualizandoVacante(true);
-        try {
-      await updateVacante(selectedVacante.id, payload);
-      setEditVacanteMessage('Vacante actualizada correctamente.');
+    const payload: UpdateVacantePayload = {};
+    if (editForm.cargoId && editForm.cargoId !== (selectedVacante.cargo?.id ?? (selectedVacante as any).cargoId)) {
+      payload.cargoId = editForm.cargoId;
+    }
+    if (editForm.ubicacion.trim() !== (selectedVacante.ubicacion ?? "")) {
+      payload.ubicacion = editForm.ubicacion.trim() || undefined;
+    }
+    if (editForm.tipoContrato.trim() !== (selectedVacante.tipoContrato ?? "")) {
+      payload.tipoContrato = editForm.tipoContrato.trim() || undefined;
+    }
+    if (editForm.estado !== (selectedVacante.estado as EstadoVacante)) {
+      payload.estado = editForm.estado;
+    }
+
+    if (Object.keys(payload).length === 0 && !editVacanteFile) {
+      setUpdateMessage("No hay cambios para guardar.");
+      setUpdateError(null);
+      return;
+    }
+
+    setSavingVacante(true);
+    setUpdateMessage(null);
+    setUpdateError(null);
+
+    try {
+      let updatedRecord = selectedVacante;
+      if (Object.keys(payload).length > 0) {
+        updatedRecord = await updateVacante(selectedVacante.id, payload);
+      }
+      if (editVacanteFile) {
+        updatedRecord = await uploadVacanteImagen(selectedVacante.id, editVacanteFile);
+      }
+      setUpdateMessage(
+        editVacanteFile ? "Vacante e imagen actualizadas correctamente." : "Vacante actualizada correctamente.",
+      );
+      setEditVacanteFile(null);
+      setEditVacantePreview(resolveAssetUrl(updatedRecord.imagenUrl));
       await loadVacantes();
     } catch (err) {
-      setEditVacanteError(err instanceof Error ? err.message : 'No se pudo actualizar la vacante.');
+      setUpdateError(err instanceof Error ? err.message : "No se pudo actualizar la vacante.");
     } finally {
-      setActualizandoVacante(false);
+      setSavingVacante(false);
     }
   };
+
+  if (!tenantSlug) {
+    return (
+      <section className="card">
+        <h2>No hay tenant seleccionado</h2>
+        <p>Tu usuario no tiene un tenant asignado. Solicita acceso a un tenant para gestionar vacantes internas.</p>
+      </section>
+    );
+  }
 
   if (!puedeGestionar) {
     return (
       <section className="card">
-        <h2>Vacantes internas</h2>
-        <p>No tienes suficientes permisos para gestionar vacantes internas.</p>
+        <h2>Sin permisos para gestionar vacantes</h2>
+        <p>
+          Necesitas el rol ADMIN o RECLUTADOR para administrar las vacantes del tenant <strong>{tenantSlug}</strong>.
+          Contacta al superadmin para que habilite tu acceso.
+        </p>
       </section>
     );
   }
 
   return (
-    <section className="card">
-      <h2>Vacantes internas</h2>
-      <p>Consulta y crea vacantes para el tenant actual.</p>
-
-      <form className="form" onSubmit={handleBuscarVacantes} style={{ marginBottom: '1.5rem' }}>
-        <label>
-          Estado
-          <select value={estadoFiltro} onChange={(event) => setEstadoFiltro(event.target.value)}>
-            <option value="">Todos</option>
-            {ESTADOS.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="submit" className="button" disabled={loadingVacantes}>
-          {loadingVacantes ? 'Buscando...' : 'Buscar vacantes'}
-        </button>
-      </form>
-
-      {vacantesError && <div className="alert alert--error">{vacantesError}</div>}
-
-      <div className="vacantes-list">
-        {vacantes.map((vacante) => (
-          <article
-            key={vacante.id}
-            className={`vacante-item ${selectedVacante?.id === vacante.id ? 'selected' : ''}`}
-            onClick={() => handleSelectVacante(vacante)}
-          >
-            <h3>{vacante.cargo?.nombre ?? 'Cargo sin nombre'}</h3>
-            <p>
-              Estado: <strong>{vacante.estado.toUpperCase()}</strong> | Visibilidad: {vacante.visibilidad}
+    <div className="vacantes-shell">
+      <section className="card vacantes-overview">
+        <header className="vacantes-header">
+          <div>
+            <p className="pill pill--accent">Tenant {tenantSlug}</p>
+            <h2>Vacantes internas</h2>
+            <p className="text-muted">
+              Publlica, filtra y actualiza las vacantes del tenant. Los cambios impactan en la visibilidad interna y en
+              los canales publicos si asi lo configuras.
             </p>
-            {vacante.ubicacion && <p>Ubicación: {vacante.ubicacion}</p>}
-            {vacante.tipoContrato && <p>Tipo de contrato: {vacante.tipoContrato}</p>}
-            {vacante.resumen && <p>{vacante.resumen}</p>}
-          </article>
-        ))}
-      </div>
-
-      <div className="card" style={{ marginTop: '1.5rem' }}>
-        <h3>Editar vacante seleccionada</h3>
-        {selectedVacante ? (
-          <form className="form" onSubmit={handleActualizarVacante}>
-            <label>
-              Cargo
-              <select value={editVacanteCargoId} onChange={(event) => setEditVacanteCargoId(event.target.value)}>
-                <option value="">Mantener cargo actual</option>
-                {cargos.map((cargo) => (
-                  <option key={cargo.id} value={cargo.id}>
-                    {cargo.nombre}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Ubicación
-              <input value={editVacanteUbicacion} onChange={(event) => setEditVacanteUbicacion(event.target.value)} />
-            </label>
-            <label>
-              Tipo de contrato
-              <input
-                value={editVacanteTipoContrato}
-                onChange={(event) => setEditVacanteTipoContrato(event.target.value)}
-              />
-            </label>
+          </div>
+          <div className="vacantes-controls">
             <label>
               Estado
-              <select value={editVacanteEstado} onChange={(event) => setEditVacanteEstado(event.target.value as EstadoVacante)}>
-                {ESTADOS.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
+              <select value={estadoFiltro} onChange={(event) => setEstadoFiltro(event.target.value)}>
+                <option value="">Todos</option>
+                {ESTADOS.map((estado) => (
+                  <option key={estado} value={estado}>
+                    {estado.charAt(0).toUpperCase() + estado.slice(1)}
                   </option>
                 ))}
               </select>
             </label>
-            <button type="submit" className="button" disabled={actualizandoVacante}>
-              {actualizandoVacante ? 'Guardando...' : 'Guardar cambios'}
+            <button type="button" className="button button--ghost" onClick={() => void loadVacantes()} disabled={loadingVacantes}>
+              Recargar
             </button>
-            {editVacanteMessage && <div className="alert alert--success">{editVacanteMessage}</div>}
-            {editVacanteError && <div className="alert alert--error">{editVacanteError}</div>}
-          </form>
-        ) : (
-          <p>Selecciona una vacante de la lista para editarla.</p>
-        )}
-      </div>
+          </div>
+        </header>
 
-      {!loadingVacantes && !vacantesError && vacantes.length === 0 && (
-        <p style={{ marginTop: '1rem', color: 'rgba(148, 163, 184, 0.8)' }}>No hay vacantes con el filtro actual.</p>
-      )}
+        <section className="mini-metrics">
+          {stats.map((metric) => (
+            <article key={metric.label} className={`mini-metric mini-metric--${metric.tone}`}>
+              <p>{metric.label}</p>
+              <strong>{metric.value}</strong>
+            </article>
+          ))}
+        </section>
 
-      <div className="grid" style={{ marginTop: '2rem' }}>
-        <div className="card">
-          <h3>Crear cargo</h3>
-          <form className="form" onSubmit={handleCrearCargo}>
-            <label>
-              Nombre del cargo
-              <input value={cargoNombre} onChange={(event) => setCargoNombre(event.target.value)} required />
-            </label>
-            <label>
-              Competencias (JSON opcional)
-              <textarea
-                value={cargoCompetencias}
-                onChange={(event) => setCargoCompetencias(event.target.value)}
-                placeholder='{"skills":["Node","React"]}'
-              />
-            </label>
-            <button type="submit" className="button" disabled={creandoCargo}>
-              {creandoCargo ? 'Creando...' : 'Crear cargo'}
-            </button>
-            {cargoMessage && <div className="alert alert--success">{cargoMessage}</div>}
-            {cargoErrorMessage && <div className="alert alert--error">{cargoErrorMessage}</div>}
-            {cargosError && <div className="alert alert--error">{cargosError}</div>}
-          </form>
+        {vacantesError && <div className="alert alert--error">{vacantesError}</div>}
+
+        <div className="vacantes-layout">
+          <aside className="vacantes-list">
+            {loadingVacantes && (
+              <div className="vacantes-skeleton">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="skeleton-card">
+                    <div className="skeleton-line" />
+                    <div className="skeleton-line skeleton-line--short" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!loadingVacantes && vacantes.length === 0 && (
+              <div className="empty-state">
+                <h3>No hay vacantes registradas</h3>
+                <p>Crea una nueva vacante para este tenant y comenzara a aparecer en los reportes y listados.</p>
+              </div>
+            )}
+
+            {!loadingVacantes &&
+              vacantes.map((vacante) => {
+                const tone = ESTADO_TONE[vacante.estado.toLowerCase()] ?? ESTADO_TONE.cerrada;
+                return (
+                  <button
+                    key={vacante.id}
+                    type="button"
+                    className={`vacante-list-item${selectedId === vacante.id ? " vacante-list-item--active" : ""}`}
+                    onClick={() => setSelectedId(vacante.id)}
+                  >
+                    <div>
+                      <p className="vacante-list-item__title">{vacante.cargo?.nombre ?? "Cargo sin nombre"}</p>
+                      <p className="vacante-list-item__meta">{vacante.ubicacion ?? "Sin ubicacion"}</p>
+                    </div>
+                    <span className={`status-chip status-chip--${tone.tone}`}>{tone.label}</span>
+                  </button>
+                );
+              })}
+          </aside>
+
+          <section className="vacantes-detail">
+            {selectedVacante ? (
+              <>
+                <header>
+                  <h3>{selectedVacante.cargo?.nombre ?? "Cargo sin nombre"}</h3>
+                  <p className="text-muted">
+                    ID interno: <code>{selectedVacante.id}</code>
+                  </p>
+                </header>
+
+                {editVacantePreview && (
+                  <div className="image-preview image-preview--detail">
+                    <img src={editVacantePreview} alt="Imagen asociada a la vacante" />
+                  </div>
+                )}
+
+                {!canEditSelected && (
+                  <div className="alert alert--info">
+                    Solo el usuario que creó la vacante o un superadmin pueden editar la información.
+                  </div>
+                )}
+
+                <dl className="vacante-meta">
+                  <div>
+                    <dt>Estado actual</dt>
+                    <dd>{selectedVacante.estado.toUpperCase()}</dd>
+                  </div>
+                  <div>
+                    <dt>Ubicacion</dt>
+                    <dd>{selectedVacante.ubicacion ?? "Sin ubicacion definida"}</dd>
+                  </div>
+                  <div>
+                    <dt>Tipo de contrato</dt>
+                    <dd>{selectedVacante.tipoContrato ?? "No informado"}</dd>
+                  </div>
+                  <div>
+                    <dt>Visibilidad</dt>
+                    <dd>{selectedVacante.visibilidad ?? "No especificada"}</dd>
+                  </div>
+                </dl>
+
+                <form className="form-grid" onSubmit={handleActualizarVacante}>
+                  <label>
+                    Cargo asignado
+                    <select
+                      value={editForm.cargoId}
+                      onChange={(event) => setEditForm((prev) => ({ ...prev, cargoId: event.target.value }))}
+                      disabled={!canEditSelected}
+                    >
+                      <option value="">Mantener cargo actual</option>
+                      {cargos.map((cargo) => (
+                        <option key={cargo.id} value={cargo.id}>
+                          {cargo.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label>
+                    Ubicacion
+                    <input
+                      value={editForm.ubicacion}
+                      onChange={(event) => setEditForm((prev) => ({ ...prev, ubicacion: event.target.value }))}
+                      placeholder="Remoto, Asuncion, etc."
+                      disabled={!canEditSelected}
+                    />
+                  </label>
+
+                  <label>
+                    Tipo de contrato
+                    <select
+                      value={editForm.tipoContrato}
+                      onChange={(event) => setEditForm((prev) => ({ ...prev, tipoContrato: event.target.value }))}
+                      disabled={!canEditSelected}
+                    >
+                      <option value="">Selecciona una opcion</option>
+                      {CONTRATOS.map((tipo) => (
+                        <option key={tipo} value={tipo}>
+                          {tipo}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label>
+                    Estado de la vacante
+                    <select
+                      value={editForm.estado}
+                      onChange={(event) =>
+                        setEditForm((prev) => ({ ...prev, estado: event.target.value as EstadoVacante }))
+                      }
+                      disabled={!canEditSelected}
+                    >
+                      {ESTADOS.map((estado) => (
+                        <option key={estado} value={estado}>
+                          {estado.charAt(0).toUpperCase() + estado.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="file-input">
+                    Imagen (jpg o png)
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg"
+                      onChange={handleEditFileChange}
+                      disabled={!canEditSelected}
+                    />
+                  </label>
+
+                  <button type="submit" className="button button--primary" disabled={savingVacante || !canEditSelected}>
+                    {savingVacante ? "Guardando..." : "Guardar cambios"}
+                  </button>
+                </form>
+
+                {updateMessage && <div className="alert alert--success">{updateMessage}</div>}
+                {updateError && <div className="alert alert--error">{updateError}</div>}
+              </>
+            ) : (
+              <div className="empty-state">
+                <h3>Selecciona una vacante</h3>
+                <p>El panel mostrara aqui los detalles y permitira actualizar el estado y la informacion clave.</p>
+              </div>
+            )}
+          </section>
         </div>
+      </section>
 
-        <div className="card">
-          <h3>Crear vacante</h3>
-          <form className="form" onSubmit={handleCrearVacante}>
-            <label>
-              Cargo
-              <select value={vacanteCargoId} onChange={(event) => setVacanteCargoId(event.target.value)} required>
-                <option value="">Selecciona un cargo</option>
-                {cargos.map((cargo) => (
-                  <option key={cargo.id} value={cargo.id}>
-                    {cargo.nombre}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Ubicación
-              <input value={vacanteUbicacion} onChange={(event) => setVacanteUbicacion(event.target.value)} />
-            </label>
-            <label>
-              Tipo de contrato
-              <input value={vacanteTipoContrato} onChange={(event) => setVacanteTipoContrato(event.target.value)} />
-            </label>
-            <label>
-              Estado
-              <select value={vacanteEstado} onChange={(event) => setVacanteEstado(event.target.value as EstadoVacante)}>
-                {ESTADOS.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button type="submit" className="button" disabled={creandoVacante || cargosLoading}>
-              {creandoVacante ? 'Creando...' : 'Crear vacante'}
-            </button>
-            {vacanteMessage && <div className="alert alert--success">{vacanteMessage}</div>}
-            {vacanteErrorMessage && <div className="alert alert--error">{vacanteErrorMessage}</div>}
-          </form>
-        </div>
-      </div>
-    </section>
+      <section className="card vacantes-form">
+        <h3>Crear nueva vacante</h3>
+        <p className="text-muted">
+          Elige un cargo existente y completa los datos minimos. Podras actualizar la descripcion desde el backend o
+          integraciones posteriores.
+        </p>
+
+        <form className="form-grid" onSubmit={handleCrearVacante}>
+          <label>
+            Cargo
+            <select
+              value={createVacanteForm.cargoId}
+              onChange={(event) => setCreateVacanteForm((prev) => ({ ...prev, cargoId: event.target.value }))}
+              disabled={loadingCargos}
+              required
+            >
+              <option value="">Selecciona un cargo</option>
+              {cargos.map((cargo) => (
+                <option key={cargo.id} value={cargo.id}>
+                  {cargo.nombre}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            Ubicacion
+            <input
+              value={createVacanteForm.ubicacion}
+              onChange={(event) => setCreateVacanteForm((prev) => ({ ...prev, ubicacion: event.target.value }))}
+              placeholder="Remoto, hibrido, ciudad..."
+            />
+          </label>
+
+          <label>
+            Tipo de contrato
+            <select
+              value={createVacanteForm.tipoContrato}
+              onChange={(event) => setCreateVacanteForm((prev) => ({ ...prev, tipoContrato: event.target.value }))}
+            >
+              <option value="">Selecciona una opcion</option>
+              {CONTRATOS.map((tipo) => (
+                <option key={tipo} value={tipo}>
+                  {tipo}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            Estado inicial
+            <select
+              value={createVacanteForm.estado}
+              onChange={(event) =>
+                setCreateVacanteForm((prev) => ({ ...prev, estado: event.target.value as EstadoVacante }))
+              }
+            >
+              {ESTADOS.map((estado) => (
+                <option key={estado} value={estado}>
+                  {estado.charAt(0).toUpperCase() + estado.slice(1)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="file-input">
+            Imagen (opcional)
+            <input type="file" accept="image/png,image/jpeg" onChange={handleCreateFileChange} />
+          </label>
+          {createVacantePreview && (
+            <div className="image-preview">
+              <img src={createVacantePreview} alt="Previsualizaci�n de la vacante" />
+            </div>
+          )}
+
+          <button type="submit" className="button button--primary" disabled={creatingVacante}>
+            {creatingVacante ? "Creando..." : "Crear vacante"}
+          </button>
+        </form>
+
+        {createVacanteMessage && <div className="alert alert--success">{createVacanteMessage}</div>}
+        {createVacanteError && <div className="alert alert--error">{createVacanteError}</div>}
+      </section>
+
+      <section className="card vacantes-form">
+        <h3>Crear nuevo cargo</h3>
+        <p className="text-muted">
+          Define cargos base para reutilizarlos en nuevas vacantes. Puedes adjuntar competencias en formato JSON para
+          integraciones futuras.
+        </p>
+
+        <form className="form-grid" onSubmit={handleCrearCargo}>
+          <label>
+            Nombre del cargo
+            <input
+              value={createCargoNombre}
+              onChange={(event) => setCreateCargoNombre(event.target.value)}
+              placeholder="Ej. Analista de talento"
+              required
+            />
+          </label>
+
+          <label>
+            Competencias (JSON opcional)
+            <textarea
+              value={createCargoCompetencias}
+              onChange={(event) => setCreateCargoCompetencias(event.target.value)}
+              placeholder='{"skills":["Comunicacion","Excel"]}'
+            />
+          </label>
+
+          <button type="submit" className="button button--ghost" disabled={creatingCargo}>
+            {creatingCargo ? "Guardando..." : "Guardar cargo"}
+          </button>
+        </form>
+
+        {createCargoMessage && <div className="alert alert--success">{createCargoMessage}</div>}
+        {createCargoError && <div className="alert alert--error">{createCargoError}</div>}
+        {cargosError && <div className="alert alert--error">{cargosError}</div>}
+      </section>
+    </div>
   );
 }
 
 export default VacantesTenant;
-
-
-
-
-
-

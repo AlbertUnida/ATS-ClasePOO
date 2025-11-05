@@ -1,7 +1,7 @@
 ﻿# Frontend ATS (Vite + React)
 
 Este es el punto de partida para construir la interfaz del proyecto ATS.
-Incluye routing con eact-router-dom, un cliente ligero para consumir el backend
+Incluye routing con eact-router-dom, un cliente ligero para consumir el backend
 y pantallas de ejemplo para autenticación, gestión de tenants, usuarios y vacantes.
 
 ## Requisitos previos

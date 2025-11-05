@@ -1,4 +1,5 @@
-﻿export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4050';
+﻿
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4050';
 const STORAGE_KEY = 'ats_access_token';
 
 const getStoredToken = () => localStorage.getItem(STORAGE_KEY);
@@ -76,7 +77,9 @@ export interface VacantePublica {
   publicSlug?: string | null;
   estado: string;
   tenant: { name: string; slug: string };
-  cargo: { nombre: string };
+  cargo: { id: string; nombre: string };
+  visibilidad?: string | null;
+  imagenUrl?: string | null;
 }
 
 export function fetchVacantesPublicas(tenantSlug: string) {
@@ -89,6 +92,9 @@ export interface VacantePrivada extends VacantePublica {
   ubicacion?: string | null;
   tipoContrato?: string | null;
   visibilidad?: string;
+  imagenUrl?: string | null;
+  createdByUserId?: string | null;
+  updatedByUserId?: string | null;
 }
 
 export function fetchVacantesPorTenant(tenantSlug: string, estado?: string) {
@@ -221,19 +227,20 @@ export interface CreateCargoPayload {
   competencias?: Record<string, any>;
 }
 
-export function createCargo(body: CreateCargoPayload) {
-  return request<CargoItem>('/cargos', {
-    method: 'POST',
-    body: JSON.stringify(body),
-  });
-}
-
 export interface CreateVacantePayload {
   cargoId: string;
   ubicacion?: string;
   tipoContrato?: string;
   estado?: 'abierta' | 'pausada' | 'cerrada';
   flujoAprobacion?: Record<string, any>;
+  imagenUrl?: string;
+}
+
+export function createCargo(body: CreateCargoPayload) {
+  return request<CargoItem>('/cargos', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
 }
 
 export function createVacante(body: CreateVacantePayload) {
@@ -251,3 +258,32 @@ export function updateVacante(id: string, body: UpdateVacantePayload) {
     body: JSON.stringify(body),
   });
 }
+
+export async function uploadVacanteImagen(id: string, file: File) {
+  const token = getStoredToken();
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch(`${API_BASE_URL}/vacantes/${encodeURIComponent(id)}/imagen`, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    let message = response.statusText;
+    try {
+      const body = await response.json();
+      message = body.message ?? body.error ?? message;
+    } catch {
+      // noop
+    }
+    throw new Error(message);
+  }
+
+  return (await response.json()) as VacantePrivada;
+}
+

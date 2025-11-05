@@ -1,51 +1,93 @@
-﻿import { BrowserRouter, Navigate, NavLink, Route, Routes } from 'react-router-dom';
-import './App.css';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import VacantesPublicas from './pages/VacantesPublicas';
-import Dashboard from './pages/Dashboard';
-import { useAuth } from './context/AuthContext';
-import Tenants from './pages/Tenants';
-import Users from './pages/Users';
-import VacantesTenant from './pages/VacantesTenant';
+﻿import type { ReactNode } from "react";
+import { BrowserRouter, Navigate, NavLink, Route, Routes } from "react-router-dom";
+import "./App.css";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import VacantesPublicas from "./pages/VacantesPublicas";
+import Dashboard from "./pages/Dashboard";
+import { useAuth } from "./context/AuthContext";
+import Tenants from "./pages/Tenants";
+import Users from "./pages/Users";
+import VacantesTenant from "./pages/VacantesTenant";
+import CandidatePortal from "./pages/CandidatePortal";
 
-function Layout({ children }: { children: React.ReactNode }) {
+type NavLinkConfig = {
+  to: string;
+  label: string;
+  icon: string;
+  roles?: string[];
+  superAdmin?: boolean;
+};
+
+const NAV_LINKS: NavLinkConfig[] = [
+  { to: "/", label: "Inicio", icon: "IN" },
+  { to: "/vacantes", label: "Vacantes publicas", icon: "VP" },
+  { to: "/vacantes/tenant", label: "Vacantes internas", icon: "VI", roles: ["ADMIN", "RECLUTADOR"] },
+  { to: "/tenants", label: "Tenants", icon: "TN", superAdmin: true },
+  { to: "/usuarios", label: "Usuarios", icon: "US", roles: ["ADMIN"] },
+  { to: "/postulantes/preview", label: "Postulantes", icon: "PO", roles: ["ADMIN", "RECLUTADOR"] },
+];
+
+function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
 
   const hasRole = (role: string) => user?.roles?.includes(role);
 
   return (
-    <div className="layout">
-      <header className="layout__header">
-        <h1>ATS de Reclutamiento</h1>
-        <nav>
-          <NavLink to="/" end>
-            Inicio
-          </NavLink>
-          {!user && <NavLink to="/login">Iniciar sesión</NavLink>}
-          <NavLink to="/vacantes">Vacantes públicas</NavLink>
-          {user && <NavLink to="/panel">Mi tablero</NavLink>}
-          {user && (user.isSuperAdmin || hasRole('RECLUTADOR') || hasRole('ADMIN')) && (
-            <NavLink to="/vacantes/tenant">Vacantes internas</NavLink>
-          )}
-          {user?.isSuperAdmin && <NavLink to="/tenants">Tenants</NavLink>}
-          {user && (user.isSuperAdmin || hasRole('ADMIN')) && <NavLink to="/usuarios">Usuarios</NavLink>}
+    <div className="shell">
+      <aside className="shell__sidebar">
+        <div className="shell__brand">
+          <div className="shell__brand-logo">TF</div>
+          <p className="shell__brand-text">Talent Flow ATS</p>
+        </div>
+
+        <nav className="shell__nav">
+          {NAV_LINKS.map(({ to, label, icon, roles, superAdmin }) => {
+            if (!user) return null;
+            if (superAdmin && !user.isSuperAdmin) return null;
+            if (roles && !user.isSuperAdmin && !roles.some((role) => hasRole(role))) return null;
+
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) => `shell__nav-link${isActive ? " active" : ""}`}
+              >
+                <span className="shell__nav-icon" aria-hidden="true">
+                  {icon}
+                </span>
+                <span>{label}</span>
+              </NavLink>
+            );
+          })}
         </nav>
-        {user && (
-          <div className="layout__user">
-            <span>
-              Conectado como <strong>{user.email}</strong> ({user.tenant}) · Roles: {user.roles.join(', ') || 'N/A'}
-            </span>
-            <button type="button" className="button button--small" onClick={logout}>
-              Cerrar sesión
-            </button>
+
+        <div className="shell__sidebar-footer">
+          <button type="button" className="shell__logout" onClick={logout}>
+            Cerrar sesion
+          </button>
+        </div>
+      </aside>
+
+      <div className="shell__workspace">
+        <header className="shell__topbar">
+          <div>
+            <h2>{user?.tenant?.toUpperCase() ?? "SIN TENANT"}</h2>
+            <p>Gestiona los procesos de Talent Flow ATS con una experiencia moderna.</p>
           </div>
-        )}
-      </header>
-      <main className="layout__main">{children}</main>
-      <footer className="layout__footer">
-        Backend: <code>http://localhost:4050</code> · Frontend con Vite + React
-      </footer>
+          <div className="shell__profile">
+            <div className="shell__avatar" aria-hidden="true">
+              {user?.email?.charAt(0)?.toUpperCase() ?? "?"}
+            </div>
+            <div>
+              <p className="shell__profile-name">{user?.email}</p>
+              <p className="shell__profile-role">{user?.roles.join(", ") || "Sin roles"}</p>
+            </div>
+          </div>
+        </header>
+
+        <main className="shell__main">{children}</main>
+      </div>
     </div>
   );
 }
@@ -54,47 +96,45 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/postulantes" element={<CandidatePortal />} />
         <Route
           path="/"
           element={
-            <Layout>
-              <Home />
-            </Layout>
-          }
-        />
-        <Route
-          path="/login"
-          element={
-            <Layout>
-              <Login />
-            </Layout>
-          }
-        />
-        <Route
-          path="/vacantes"
-          element={
-            <Layout>
-              <VacantesPublicas />
-            </Layout>
+            <ProtectedRoute>
+              <DashboardLayout>
+                <Home />
+              </DashboardLayout>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/panel"
           element={
             <ProtectedRoute>
-              <Layout>
+              <DashboardLayout>
                 <Dashboard />
-              </Layout>
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vacantes"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <VacantesPublicas />
+              </DashboardLayout>
             </ProtectedRoute>
           }
         />
         <Route
           path="/vacantes/tenant"
           element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'RECLUTADOR']}>
-              <Layout>
+            <ProtectedRoute allowedRoles={["ADMIN", "RECLUTADOR"]}>
+              <DashboardLayout>
                 <VacantesTenant />
-              </Layout>
+              </DashboardLayout>
             </ProtectedRoute>
           }
         />
@@ -102,19 +142,29 @@ function App() {
           path="/tenants"
           element={
             <ProtectedRoute onlySuperAdmin>
-              <Layout>
+              <DashboardLayout>
                 <Tenants />
-              </Layout>
+              </DashboardLayout>
             </ProtectedRoute>
           }
         />
         <Route
           path="/usuarios"
           element={
-            <ProtectedRoute allowedRoles={['ADMIN']}>
-              <Layout>
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <DashboardLayout>
                 <Users />
-              </Layout>
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/postulantes/preview"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN", "RECLUTADOR"]}>
+              <DashboardLayout>
+                <CandidatePortal preview />
+              </DashboardLayout>
             </ProtectedRoute>
           }
         />
@@ -125,7 +175,7 @@ function App() {
 }
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children: ReactNode;
   allowedRoles?: string[];
   onlySuperAdmin?: boolean;
 }
@@ -135,8 +185,8 @@ function ProtectedRoute({ children, allowedRoles, onlySuperAdmin }: ProtectedRou
 
   if (initializing) {
     return (
-      <div className="layout__main" style={{ textAlign: 'center', paddingTop: '3rem' }}>
-        <p>Cargando sesión...</p>
+      <div className="loading-screen">
+        <p>Cargando sesion...</p>
       </div>
     );
   }
@@ -160,3 +210,4 @@ function ProtectedRoute({ children, allowedRoles, onlySuperAdmin }: ProtectedRou
 }
 
 export default App;
+

@@ -23,4 +23,8 @@ export class CreateVacanteDto {
   @ApiPropertyOptional({ description: 'Objeto de flujo de aprobación' })
   @IsOptional() @IsObject()
   flujoAprobacion?: Record<string, any>;
+
+  @ApiPropertyOptional({ description: 'URL de imagen asociada a la vacante' })
+  @IsOptional() @IsString()
+  imagenUrl?: string;
 }

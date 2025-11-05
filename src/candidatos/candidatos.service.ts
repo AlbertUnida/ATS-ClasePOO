@@ -1,13 +1,22 @@
-import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { promises as fs } from 'fs';
+import { join } from 'path';
 import { CreateCandidatoDto } from './dto/create-candidato.dto';
 import { CandidateRegisterDto } from './dto/candidate-register.dto';
 import { CandidateLoginDto } from './dto/candidate-login.dto';
 import { UpdateCandidatoDto } from './dto/update-candidato.dto';
-import { PostulacionesService } from '../postulaciones/postulaciones.service'; // 👈
+import { PostulacionesService } from '../postulaciones/postulaciones.service';
 import { CreatePostulacionDto } from '../postulaciones/dto/create-postulacione.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
 import { Response } from 'express';
+
+const UPLOADS_PREFIX = '/uploads/';
 
 @Injectable()
 export class CandidatosService {
@@ -15,13 +24,23 @@ export class CandidatosService {
     private prisma: PrismaService,
     private authService: AuthService,
     private postulacionesService: PostulacionesService,
-  ) { }
+  ) {}
 
   private present(c: any) {
-    // Opcional: exponer "perfil" (objeto) y ocultar perfilJson
     const perfil = c.perfilJson ? JSON.parse(c.perfilJson) : undefined;
     const { perfilJson, ...rest } = c;
     return { ...rest, perfil };
+  }
+
+  private async removeLocalFileIfExists(url: string) {
+    if (!url?.startsWith(UPLOADS_PREFIX)) return;
+    const relative = url.replace(/^\//, '');
+    const absolute = join(process.cwd(), relative);
+    try {
+      await fs.unlink(absolute);
+    } catch {
+      // noop
+    }
   }
 
   async create(dto: CreateCandidatoDto) {
@@ -40,18 +59,6 @@ export class CandidatosService {
         },
       });
 
-      // 👇 crear usuario automáticamente (rol CANDIDATO) si se pidió
-      // if (dto.createUser && dto.password) {
-      //   await this.authService.createTenantUser({
-      //     name: dto.nombre,
-      //     email: dto.email,
-      //     password: dto.password,
-      //     tenantSlug: dto.tenantSlug,
-      //     roleName: 'CANDIDATO',
-      //     candidatoId: cand.id,       // 👈 vínculo 1:1
-      //   });
-      // }
-
       return this.present(cand);
     } catch (e: any) {
       if (e.code === 'P2002') throw new ConflictException('Ya existe un candidato con ese email en este tenant');
@@ -60,8 +67,9 @@ export class CandidatosService {
   }
 
   async register(dto: CandidateRegisterDto) {
-    // 🔥 Eliminamos lógica de tenantSlug
-    const exists = await this.prisma.candidatoCuentas.findUnique({ where: { email: dto.email } });
+    const exists = await this.prisma.candidatoCuentas.findUnique({
+      where: { email: dto.email },
+    });
     if (exists) throw new ConflictException('Ya existe una cuenta con ese email');
 
     const hashedPassword = await this.authService.hashPassword(dto.password);
@@ -72,13 +80,23 @@ export class CandidatosService {
       },
     });
 
+    let tenantId: string | undefined;
+    if (dto.tenantSlug) {
+      const tenant = await this.prisma.tenants.findUnique({
+        where: { slug: dto.tenantSlug },
+      });
+      if (!tenant) throw new NotFoundException('Tenant no encontrado');
+      tenantId = tenant.id;
+    }
+
     const candidato = await this.prisma.candidatos.create({
       data: {
         nombre: dto.name,
-        email: dto.email,
+        email: dto.email.toLowerCase(),
         telefono: dto.telefono,
         cvUrl: dto.cvUrl,
         cuentaId: cuenta.id,
+        tenantId,
       },
     });
 
@@ -106,18 +124,12 @@ export class CandidatosService {
     };
 
     const accessToken = await this.authService.signAccess(payload);
-
-    // ✅ DEBUG: imprimir el token y el payload
-    //console.log('🔐 Candidate login payload:', payload);
-    //console.log('📦 JWT:', accessToken);
-
     res.cookie('access_token', accessToken, this.authService.cookieOpts());
 
     return {
       access_token: accessToken,
       message: 'Login exitoso',
-      // ⚠️ Solo para debug temporal: devolvé también el payload
-      payload, // podés quitarlo después
+      payload,
     };
   }
 
@@ -149,7 +161,6 @@ export class CandidatosService {
       };
     }
 
-    // Caso sin include
     const candidato = await this.prisma.candidatos.findFirst({
       where: { cuentaId },
     });
@@ -158,7 +169,7 @@ export class CandidatosService {
 
     return {
       ...this.present(candidato),
-      tipoUsuario: 'candidato', // 👈 agregado explícitamente
+      tipoUsuario: 'candidato',
     };
   }
 
@@ -195,4 +206,23 @@ export class CandidatosService {
     return this.postulacionesService.create(dto, candidato.id, userContext);
   }
 
+  async updateCvFromUpload(cuentaId: string, cvPath: string) {
+    const candidato = await this.prisma.candidatos.findFirst({
+      where: { cuentaId },
+    });
+    if (!candidato) throw new NotFoundException('Candidato no encontrado');
+
+    const updated = await this.prisma.candidatos.update({
+      where: { id: candidato.id },
+      data: {
+        cvUrl: cvPath,
+      },
+    });
+
+    if (candidato.cvUrl && candidato.cvUrl !== cvPath) {
+      await this.removeLocalFileIfExists(candidato.cvUrl).catch(() => undefined);
+    }
+
+    return this.present(updated);
+  }
 }

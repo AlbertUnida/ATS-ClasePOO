@@ -1,60 +1,91 @@
-﻿import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+﻿import { Link } from "react-router-dom";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4050';
+const INSIGHTS = [
+  {
+    title: "Mapea tu pipeline",
+    description: "Identifica etapas criticas, asigna responsables y asegura tiempos de respuesta por rol.",
+    icon: "PL",
+  },
+  {
+    title: "Plantillas y checklists",
+    description: "Estandariza evaluaciones, feedback y comunicaciones con candidatos.",
+    icon: "PC",
+  },
+  {
+    title: "Analitica en tiempo real",
+    description: "Comparte metricas de contratacion, rotacion y velocidad con tu organizacion.",
+    icon: "AN",
+  },
+];
+
+const HIGHLIGHTS = [
+  {
+    label: "Vacantes activas",
+    value: "32",
+    tone: "verde",
+  },
+  {
+    label: "Candidatos en evaluacion",
+    value: "148",
+    tone: "azul",
+  },
+  {
+    label: "Ofertas en curso",
+    value: "11",
+    tone: "naranja",
+  },
+];
 
 function Home() {
-  const { user } = useAuth();
-
   return (
-    <div className="card">
-      <h2>Bienvenido al panel ATS</h2>
-      <p>
-        Este frontend es el punto de partida para administrar el ATS multi-tenant. Desde aquí podrás construir las
-        pantallas de autenticación, gestión de tenants, vacantes, postulaciones y mucho más.
-      </p>
-
-      <div className="grid grid--cols-2" style={{ marginTop: '1.75rem' }}>
-        <div className="card" style={{ padding: '1.25rem' }}>
-          <h3>Próximos pasos</h3>
-          <ul>
-            <li>Configura tu primer superadmin usando Swagger.</li>
-            <li>Implementa un flujo de login en esta interfaz.</li>
-            <li>Conecta las vistas con el backend usando el cliente API.</li>
-          </ul>
+    <div className="home">
+      <section className="home__hero">
+        <div>
+          <h1>Talent Flow ats</h1>
+          <p>
+            El centro de mando para coordinar reclutamiento, entrevistas y aprobaciones en organizaciones multi-tenant.
+          </p>
+          <div className="home__hero-actions">
+            <Link to="/vacantes/tenant" className="button button--primary">
+              Gestionar vacantes
+            </Link>
+            <Link to="/vacantes" className="button button--ghost">
+              Revisar postulaciones
+            </Link>
+          </div>
         </div>
-        <div className="card" style={{ padding: '1.25rem' }}>
-          <h3>Recursos útiles</h3>
-          <ul>
-            <li>
-              Backend corriendo en <code>{API_BASE}</code>
-            </li>
-            <li>
-              Documentación de API en{' '}
-              <a href={`${API_BASE}/docs`} target="_blank" rel="noreferrer">
-                Swagger
-              </a>
-            </li>
-          </ul>
+        <div className="home__hero-badge" aria-hidden>
+          <span>Gestion</span>
+          <span>de talento</span>
         </div>
-      </div>
+      </section>
 
-      <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-        {!user ? (
-          <Link to="/login" className="button">
-            Ir a iniciar sesión
-          </Link>
-        ) : (
-          <Link to="/panel" className="button">
-            Ir a mi panel privado
-          </Link>
-        )}
-        <Link to="/vacantes" className="button">
-          Ver vacantes públicas
-        </Link>
-      </div>
+      <section className="home__stats">
+        {HIGHLIGHTS.map((item) => (
+          <article key={item.label} className="home__stat">
+            <p>{item.label}</p>
+            <strong className={`home__stat-value home__stat-value--${item.tone}`}>{item.value}</strong>
+          </article>
+        ))}
+      </section>
+
+      <section className="home__insights">
+        {INSIGHTS.map((card) => (
+          <article key={card.title} className="home__insight-card">
+            <div className="home__insight-icon" aria-hidden>
+              {card.icon}
+            </div>
+            <h3>{card.title}</h3>
+            <p>{card.description}</p>
+            <button className="home__insight-action" type="button">
+              Abrir Modulo
+            </button>
+          </article>
+        ))}
+      </section>
     </div>
   );
 }
 
 export default Home;
+

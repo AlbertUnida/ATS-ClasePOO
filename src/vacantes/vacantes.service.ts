@@ -2,6 +2,10 @@ import { BadRequestException, Injectable, NotFoundException, ForbiddenException 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateVacanteDto } from './dto/create-vacante.dto';
 import { UpdateVacanteDto } from './dto/update-vacante.dto';
+import { promises as fs } from 'fs';
+import { join } from 'path';
+
+const UPLOADS_PREFIX = '/uploads/';
 
 @Injectable()
 export class VacantesService {
@@ -35,6 +39,7 @@ export class VacantesService {
         estado,
         flujoAprobacionJson: dto.flujoAprobacion ? JSON.stringify(dto.flujoAprobacion) : undefined,
         createdByUserId: user?.id, // opcional
+        imagenUrl: dto.imagenUrl,
       },
       include: { cargo: true },
     });
@@ -131,6 +136,9 @@ export class VacantesService {
     if (!isSuperAdmin && tenant.slug !== user.tenant) {
       throw new ForbiddenException('No tienes acceso a esta vacante');
     }
+    if (!isSuperAdmin && vacante.createdByUserId && vacante.createdByUserId !== user.id) {
+      throw new ForbiddenException('Solo el creador de la vacante o un superadmin pueden editarla');
+    }
 
     // Validar nuevo cargoId si lo quiere cambiar
     if (dto.cargoId && dto.cargoId !== vacante.cargoId) {
@@ -152,6 +160,7 @@ export class VacantesService {
       estado: dto.estado,
       flujoAprobacionJson: dto.flujoAprobacion ? JSON.stringify(dto.flujoAprobacion) : undefined,
       updatedByUserId: user?.id,
+      imagenUrl: dto.imagenUrl,
     };
 
     // Quitar campos undefined para no sobreescribir nulos
@@ -181,4 +190,45 @@ export class VacantesService {
     return updated;
   }
 
+  async updateImagen(id: string, imagenUrl: string, user: any) {
+    const vacante = await this.prisma.vacantes.findUnique({ where: { id } });
+    if (!vacante || vacante.deletedAt) {
+      throw new NotFoundException('Vacante no encontrada o eliminada');
+    }
+    const isSuperAdmin = user.roles.includes('SUPERADMIN');
+    const tenant = await this.prisma.tenants.findUnique({ where: { id: vacante.tenantId } });
+    if (!tenant) throw new NotFoundException('Tenant no encontrado');
+    if (!isSuperAdmin && tenant.slug !== user.tenant) {
+      throw new ForbiddenException('No tienes acceso a esta vacante');
+    }
+    if (!isSuperAdmin && vacante.createdByUserId && vacante.createdByUserId !== user.id) {
+      throw new ForbiddenException('Solo el creador de la vacante o un superadmin pueden actualizar la imagen');
+    }
+
+    const updated = await this.prisma.vacantes.update({
+      where: { id },
+      data: {
+        imagenUrl,
+        updatedByUserId: user?.id,
+      },
+      include: { cargo: true },
+    });
+
+    if (vacante.imagenUrl && vacante.imagenUrl !== imagenUrl) {
+      await this.removeLocalFileIfExists(vacante.imagenUrl).catch(() => undefined);
+    }
+
+    return updated;
+  }
+
+  private async removeLocalFileIfExists(url: string) {
+    if (!url.startsWith(UPLOADS_PREFIX)) return;
+    const relative = url.replace(/^\//, '');
+    const absolutePath = join(process.cwd(), relative);
+    try {
+      await fs.unlink(absolutePath);
+    } catch {
+      // ignore cleanup errors
+    }
+  }
 }
