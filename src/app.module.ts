@@ -12,9 +12,12 @@ import { VacantesModule } from './vacantes/vacantes.module';
 import { PostulacionesModule } from './postulaciones/postulaciones.module';
 import { EntrevistasModule } from './entrevistas/entrevistas.module';
 import { FeedbackModule } from './feedback/feedback.module';
+import { ScoringModule } from './scoring/scoring.module';
+import { AutomationsModule } from './automations/automations.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, TenantsModule, RolesPermisosModule, CandidatosModule, CargosModule, VacantesModule, PostulacionesModule, EntrevistasModule, FeedbackModule],
+  imports: [PrismaModule, AuthModule, TenantsModule, RolesPermisosModule, CandidatosModule, CargosModule, VacantesModule, PostulacionesModule, EntrevistasModule, FeedbackModule, ScoringModule, AutomationsModule, ReportsModule],
   controllers: [AppController],
   providers: [AppService],
 })

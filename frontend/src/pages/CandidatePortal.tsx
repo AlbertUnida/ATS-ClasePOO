@@ -52,6 +52,7 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
     preview ? DEFAULT_POSTULACIONES_PREVIEW : [],
   );
   const [vacantes, setVacantes] = useState<VacantePublica[]>([]);
+  const [selectedVacante, setSelectedVacante] = useState<VacantePublica | null>(null);
   const [tenantFilter, setTenantFilter] = useState("");
   const [vacantesLoading, setVacantesLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -60,6 +61,9 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
   const [updatingProfile, setUpdatingProfile] = useState(false);
   const [uploadingCv, setUploadingCv] = useState(false);
   const [applyingId, setApplyingId] = useState<string | null>(null);
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [applyNotes, setApplyNotes] = useState("");
+  const [applyCvUrl, setApplyCvUrl] = useState("");
 
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [registerForm, setRegisterForm] = useState({
@@ -91,6 +95,11 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
           ? await fetchVacantesPublicas(tenantSlug.trim().toLowerCase())
           : await fetchVacantesPublicasTodas();
         setVacantes(data);
+        if (data.length > 0) {
+          setSelectedVacante((current) => current ?? data[0]);
+        } else {
+          setSelectedVacante(null);
+        }
       } catch (error) {
         if (!preview) {
           setErrorMessage(error instanceof Error ? error.message : "No se pudieron cargar las vacantes públicas.");
@@ -200,7 +209,32 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
     }
   };
 
-  const handleApply = async (vacante: VacantePublica) => {
+  const handleOpenApplyModal = (vacante: VacantePublica) => {
+    if (preview) {
+      setStatusMessage("En modo vista previa las postulaciones están deshabilitadas.");
+      return;
+    }
+    if (!profile) {
+      setErrorMessage("Debes iniciar sesión para postularte a una vacante.");
+      return;
+    }
+    setSelectedVacante(vacante);
+    setApplyNotes("");
+    setApplyCvUrl(profile.cvUrl ?? "");
+    setApplyModalOpen(true);
+  };
+
+  const handleCloseApplyModal = () => {
+    setApplyModalOpen(false);
+    setApplyNotes("");
+    setApplyCvUrl("");
+    setApplyingId(null);
+  };
+
+  const handleApply = async (
+    vacante: VacantePublica,
+    extras?: { mensaje?: string; cvExtraUrl?: string },
+  ) => {
     if (preview) {
       setStatusMessage("En modo vista previa las postulaciones están deshabilitadas.");
       return;
@@ -216,15 +250,27 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
         tenantSlug: vacante.tenant?.slug ?? "",
         vacanteId: vacante.id,
         fuente: "portal",
+        mensaje: extras?.mensaje,
+        cvExtraUrl: extras?.cvExtraUrl,
       });
       setStatusMessage("Postulación enviada. Puedes seguir el estado en la sección de postulaciones.");
       const postulacionesResponse = await fetchCandidatePostulaciones();
       setPostulaciones(postulacionesResponse.postulaciones ?? []);
+      setApplyModalOpen(false);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "No se pudo registrar la postulación.");
     } finally {
       setApplyingId(null);
     }
+  };
+
+  const handleApplyFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedVacante) return;
+    await handleApply(selectedVacante, {
+      mensaje: applyNotes.trim() ? applyNotes.trim() : undefined,
+      cvExtraUrl: applyCvUrl.trim() ? applyCvUrl.trim() : undefined,
+    });
   };
 
   const handleLogout = async () => {
@@ -424,6 +470,60 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
         </div>
       </section>
 
+      {selectedVacante && (
+        <section className="candidate-section candidate-section--detail">
+          <header className="candidate-section__header">
+            <div>
+              <h2>Vacante seleccionada</h2>
+              <p>Consulta la información completa antes de postularte.</p>
+            </div>
+            <button
+              type="button"
+              className="button"
+              onClick={() => handleOpenApplyModal(selectedVacante)}
+              disabled={preview || !isAuthenticated}
+            >
+              {preview ? "Vista previa" : isAuthenticated ? "Postularme" : "Inicia sesión"}
+            </button>
+          </header>
+
+          <article className="vacante-detail">
+            <div className="vacante-detail__header">
+              <div>
+                <span className="pill pill--accent">{selectedVacante.tenant?.name ?? "Tenant"}</span>
+                <h3>{selectedVacante.cargo?.nombre ?? "Cargo sin nombre"}</h3>
+              </div>
+              <span className={`status-chip status-chip--${selectedVacante.estado === "abierta" ? "success" : "neutral"}`}>
+                {selectedVacante.estado.toUpperCase()}
+              </span>
+            </div>
+            {selectedVacante.resumen && (
+              <p className="vacante-detail__summary">{selectedVacante.resumen}</p>
+            )}
+            {selectedVacante.descripcion && (
+              <div className="vacante-detail__body">
+                <h4>Descripción</h4>
+                <p>{selectedVacante.descripcion}</p>
+              </div>
+            )}
+            <div className="vacante-detail__meta">
+              <div>
+                <p className="label">Código</p>
+                <code>{selectedVacante.id}</code>
+              </div>
+              <div>
+                <p className="label">Tenant</p>
+                <strong>{selectedVacante.tenant?.slug ?? "N/A"}</strong>
+              </div>
+              <div>
+                <p className="label">Visibilidad</p>
+                <strong>{selectedVacante.visibilidad ?? "PUBLICA"}</strong>
+              </div>
+            </div>
+          </article>
+        </section>
+      )}
+
       <section className="candidate-section">
         <header className="candidate-section__header">
           <div>
@@ -459,7 +559,11 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
 
         <div className="candidate-vacantes-grid">
           {vacantes.map((vacante) => (
-            <article key={vacante.id} className="candidate-vacante-card">
+            <article
+              key={vacante.id}
+              className={`candidate-vacante-card${selectedVacante?.id === vacante.id ? " selected" : ""}`}
+              onClick={() => setSelectedVacante(vacante)}
+            >
               <header>
                 <h3>{vacante.cargo?.nombre ?? "Cargo sin nombre"}</h3>
                 <span className={`status-chip status-chip--${vacante.estado === "abierta" ? "success" : "neutral"}`}>
@@ -478,7 +582,10 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
                 <button
                   type="button"
                   className="button button--primary"
-                  onClick={() => void handleApply(vacante)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleOpenApplyModal(vacante);
+                  }}
                   disabled={preview || !isAuthenticated || applyingId === vacante.id}
                 >
                   {preview
@@ -541,6 +648,80 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
           </div>
         )}
       </section>
+
+      {applyModalOpen && selectedVacante && (
+        <CandidateApplyModal
+          vacante={selectedVacante}
+          notes={applyNotes}
+          cvLink={applyCvUrl}
+          onClose={handleCloseApplyModal}
+          onChangeNotes={setApplyNotes}
+          onChangeCvLink={setApplyCvUrl}
+          onSubmit={handleApplyFormSubmit}
+          submitting={applyingId === selectedVacante.id}
+        />
+      )}
+    </div>
+  );
+}
+
+interface CandidateApplyModalProps {
+  vacante: VacantePublica;
+  notes: string;
+  cvLink: string;
+  submitting: boolean;
+  onClose: () => void;
+  onChangeNotes: (value: string) => void;
+  onChangeCvLink: (value: string) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}
+
+function CandidateApplyModal({
+  vacante,
+  notes,
+  cvLink,
+  submitting,
+  onClose,
+  onChangeNotes,
+  onChangeCvLink,
+  onSubmit,
+}: CandidateApplyModalProps) {
+  return (
+    <div className="candidate-modal" role="dialog" aria-modal="true">
+      <div className="candidate-modal__backdrop" onClick={onClose} />
+      <div className="candidate-modal__content">
+        <header className="candidate-modal__header">
+          <div>
+            <p className="eyebrow">Postular a</p>
+            <h3>{vacante.cargo?.nombre ?? "Vacante"}</h3>
+          </div>
+          <button type="button" className="button button--ghost" onClick={onClose}>
+            Cerrar
+          </button>
+        </header>
+        <form className="form" onSubmit={onSubmit}>
+          <label>
+            Mensaje para el reclutador
+            <textarea
+              rows={4}
+              placeholder="Cuéntanos por qué eres la persona indicada..."
+              value={notes}
+              onChange={(event) => onChangeNotes(event.target.value)}
+            />
+          </label>
+          <label>
+            Enlace a portafolio / CV alternativo
+            <input
+              placeholder="https://..."
+              value={cvLink}
+              onChange={(event) => onChangeCvLink(event.target.value)}
+            />
+          </label>
+          <button type="submit" className="button button--primary" disabled={submitting}>
+            {submitting ? "Enviando..." : "Confirmar postulación"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

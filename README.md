@@ -518,4 +518,16 @@ vacantes	✅	✅	✅
 postulaciones	✅	✅	✅
 entrevistas	✅	✅	✅
 feedback	✅	✅	✅
-cargos	✅	✅	⚠️ Opcional
+cargos	✅	✅	⚠️ Opcional## M�dulo de scoring de candidatos
+
+Este ATS incluye un m�dulo de scoring para priorizar postulantes con gran volumen:
+- Modelo `ScoringConfig` y tabla `CandidatoScore`.
+- Servicio `ScoringService` con la funci�n `calcularCandidatoScore()` (normalizaci�n 0-100 y pesos configurables).
+- Endpoint `GET /scoring/top?tenant=<slug>&top=10` para obtener el ranking ordenado.
+- Persistencia de puntajes para reutilizarlos en consultas futuras.
+- Test unitario `scoring.service.spec.ts` que valida la l�gica.
+
+> Ejecuta la migraci�n antes de usar el m�dulo:
+> ```bash
+> npx prisma migrate dev --name add_scoring_module
+> ```

@@ -9,6 +9,7 @@ function Login() {
   const { login } = useAuth();
   const [correo, setCorreo] = useState(DEFAULT_EMAIL);
   const [clave, setClave] = useState("");
+  const [tenant, setTenant] = useState("root");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,7 +19,7 @@ function Login() {
     setError(null);
 
     try {
-      await login({ email: correo, password: clave });
+      await login({ email: correo, password: clave, tenantSlug: tenant.trim() });
       navigate("/panel", { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "No fue posible iniciar sesion");
@@ -75,6 +76,16 @@ function Login() {
               />
             </label>
 
+            <label>
+              Empresa (tenant)
+              <input
+                value={tenant}
+                onChange={(event) => setTenant(event.target.value)}
+                required
+                placeholder="root"
+              />
+            </label>
+
             <button type="submit" className="button button--primary" disabled={loading}>
               {loading ? "Verificando..." : "Ingresar"}
             </button>
@@ -82,10 +93,7 @@ function Login() {
 
           <div className="login-card__footer">
             <a href="#">Olvidaste tu acceso?</a>
-            <small>Soporte: talento@tuempresa.com</small>
           </div>
-
-          {error && <div className="alert alert--error">{error}</div>}
         </div>
       </section>
     </div>

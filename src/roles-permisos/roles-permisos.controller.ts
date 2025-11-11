@@ -1,20 +1,30 @@
-import { Controller, Post, Body, Get, Param, Put, Delete, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { RolesPermisosService } from './roles-permisos.service';
 import { CreateRolesPermisoDto } from './dto/create-roles-permiso.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiQuery } from '@nestjs/swagger';
-import { SuperAdminGuard } from '../common/guards/superadmin.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { IsArray, ArrayNotEmpty, IsString } from 'class-validator';
+import { UpdateRolesPermisoDto } from './dto/update-roles-permiso.dto';
+import { AdminOrSuperAdminGuard } from '../common/guards/superadmin.guard';
 
 class AssignPermsDto {
-  @IsArray() @ArrayNotEmpty() @IsString({ each: true })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
   permissions: string[];
+}
+
+class SyncPermsDto {
+  @IsArray()
+  @IsString({ each: true })
+  permissionIds: string[] = [];
 }
 
 @ApiTags('roles y permisos')
 @Controller('roles-permisos')
+@UseGuards(AuthGuard('jwt'), AdminOrSuperAdminGuard)
 export class RolesPermisosController {
-  constructor(private readonly rolesPermisosService: RolesPermisosService) { }
+  constructor(private readonly rolesPermisosService: RolesPermisosService) {}
 
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo rol (por tenantSlug) y opcionalmente asignar permisos (IDs)' })
@@ -55,19 +65,23 @@ export class RolesPermisosController {
     return this.rolesPermisosService.assignPermissionsToRole(roleId, body.permissions);
   }
 
-  // @Put(':roleId/update-permissions')
-  // @ApiOperation({ summary: 'Actualizar permisos de un rol' })
-  // @ApiResponse({ status: 200, description: 'Permisos actualizados correctamente.' })
-  // @ApiBody({ type: [String], description: 'Lista de permisos a actualizar' })
-  // async updatePermissionsForRole(@Param('roleId') roleId: string, @Body() permissions: string[]) {
-  //   return this.rolesPermisosService.updatePermissionsForRole(roleId, permissions);
-  // }
+  @Put(':roleId/permissions')
+  @ApiOperation({ summary: 'Reemplazar completamente los permisos asignados a un rol (sincronización)' })
+  @ApiResponse({ status: 200, description: 'Permisos sincronizados correctamente.' })
+  @ApiBody({ type: SyncPermsDto })
+  async replacePermissions(@Param('roleId') roleId: string, @Body() body: SyncPermsDto) {
+    return this.rolesPermisosService.replaceRolePermissions(roleId, body.permissionIds ?? []);
+  }
 
-  // @Delete(':roleId/remove-permissions')
-  // @ApiOperation({ summary: 'Eliminar permisos de un rol' })
-  // @ApiResponse({ status: 200, description: 'Permisos eliminados correctamente.' })
-  // @ApiBody({ type: [String], description: 'Lista de permisos a eliminar' })
-  // async removePermissionsFromRole(@Param('roleId') roleId: string, @Body() permissions: string[]) {
-  //   return this.rolesPermisosService.removePermissionsFromRole(roleId, permissions);
-  // }
+  @Patch(':roleId')
+  @ApiOperation({ summary: 'Actualizar datos del rol (nombre, tenant, permisos base)' })
+  async updateRole(@Param('roleId') roleId: string, @Body() dto: UpdateRolesPermisoDto) {
+    return this.rolesPermisosService.updateRole(roleId, dto);
+  }
+
+  @Delete(':roleId')
+  @ApiOperation({ summary: 'Eliminar un rol y sus asignaciones' })
+  async removeRole(@Param('roleId') roleId: string) {
+    return this.rolesPermisosService.removeRole(roleId);
+  }
 }

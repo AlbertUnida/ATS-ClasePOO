@@ -32,6 +32,9 @@ model Tenants {
   entrevistas   Entrevistas[] // <-- agregar
   feedbacks     Feedback[] // <-- agregar
   AuditLog      AuditLog[]
+  scoringConfig ScoringConfig?
+  emailTemplates EmailTemplates[]
+  automationRules AutomationRules[]
 }
 
 model Usuarios {
@@ -154,6 +157,8 @@ model Candidatos {
 
   cuentaId String?
   cuenta   CandidatoCuentas? @relation(fields: [cuentaId], references: [id])
+
+  score CandidatoScore?
 
   @@unique([tenantId, email]) // <--- cambia index -> unique
   @@index([tenantId]) // <--- NUEVO
@@ -317,4 +322,67 @@ model AuditLog {
   @@index([actorUserId, ts])
   @@index([actorAccountId, ts])
   @@index([action, ts])
+}
+
+model ScoringConfig {
+  id                String   @id @default(cuid())
+  tenantId          String   @unique
+  tenant            Tenants  @relation(fields: [tenantId], references: [id])
+  formacionPeso     Float    @default(0.20)
+  experienciaPeso   Float    @default(0.30)
+  habilidadesPeso   Float    @default(0.25)
+  competenciasPeso  Float    @default(0.15)
+  palabrasClavePeso Float    @default(0.10)
+  modoIA            Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model CandidatoScore {
+  id           String      @id @default(cuid())
+  candidatoId  String      @unique
+  candidato    Candidatos  @relation(fields: [candidatoId], references: [id], onDelete: Cascade)
+  puntajeTotal Float
+  detalleJson  Json
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([puntajeTotal])
+}
+
+model EmailTemplates {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenants  @relation(fields: [tenantId], references: [id])
+  name      String
+  code      String
+  subject   String
+  body      String   @db.LongText
+  channel   String   @default("email")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, code])
+  @@index([tenantId, active])
+}
+
+model AutomationRules {
+  id              String   @id @default(cuid())
+  tenantId        String
+  tenant          Tenants  @relation(fields: [tenantId], references: [id])
+  name            String
+  description     String?
+  trigger         String
+  action          String
+  conditionsJson  Json?
+  actionConfigJson Json?
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId, trigger])
+  @@index([tenantId, active])
 }

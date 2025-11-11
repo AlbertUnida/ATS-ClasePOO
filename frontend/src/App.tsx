@@ -10,6 +10,11 @@ import Tenants from "./pages/Tenants";
 import Users from "./pages/Users";
 import VacantesTenant from "./pages/VacantesTenant";
 import CandidatePortal from "./pages/CandidatePortal";
+import CandidatesPage from "./pages/Candidates";
+import AutomationsPage from "./pages/AutomationsPage";
+import InterviewsPage from "./pages/Interviews";
+import ReportsPage from "./pages/Reports";
+import AdminRolesPage from "./pages/AdminRolesPage";
 
 type NavLinkConfig = {
   to: string;
@@ -25,6 +30,11 @@ const NAV_LINKS: NavLinkConfig[] = [
   { to: "/vacantes/tenant", label: "Vacantes internas", icon: "VI", roles: ["ADMIN", "RECLUTADOR"] },
   { to: "/tenants", label: "Tenants", icon: "TN", superAdmin: true },
   { to: "/usuarios", label: "Usuarios", icon: "US", roles: ["ADMIN"] },
+  { to: "/candidatos", label: "Candidatos", icon: "CA", roles: ["ADMIN", "RECLUTADOR"] },
+  { to: "/roles", label: "Roles y permisos", icon: "RP", roles: ["ADMIN"] },
+  { to: "/automatizaciones", label: "Automatizaciones", icon: "AU", roles: ["ADMIN"] },
+  { to: "/entrevistas", label: "Entrevistas & feedback", icon: "EF", roles: ["ADMIN", "RECLUTADOR"] },
+  { to: "/reportes", label: "Reportes", icon: "RP", roles: ["ADMIN", "RECLUTADOR"] },
   { to: "/postulantes/preview", label: "Postulantes", icon: "PO", roles: ["ADMIN", "RECLUTADOR"] },
 ];
 
@@ -154,6 +164,56 @@ function App() {
             <ProtectedRoute allowedRoles={["ADMIN"]}>
               <DashboardLayout>
                 <Users />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/candidatos"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN", "RECLUTADOR"]}>
+              <DashboardLayout>
+                <CandidatesPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/roles"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <DashboardLayout>
+                <AdminRolesPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/automatizaciones"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <DashboardLayout>
+                <AutomationsPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/entrevistas"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN", "RECLUTADOR"]}>
+              <DashboardLayout>
+                <InterviewsPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reportes"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN", "RECLUTADOR"]}>
+              <DashboardLayout>
+                <ReportsPage />
               </DashboardLayout>
             </ProtectedRoute>
           }

@@ -73,8 +73,8 @@ export class VacantesController {
     return this.vacantes.listPublicasTenantOnly(tenant.trim().toLowerCase());
   }
 
-  @Get('publicasTodas')
-  @ApiOperation({ summary: 'Listar todas las vacantes públicas de todos los tenants' })
+  @Get('publicas/todas')
+  @ApiOperation({ summary: 'Listar todas las vacantes publicas de todos los tenants' })
   listPublicasTodas() {
     return this.vacantes.listTodasPublicas();
   }

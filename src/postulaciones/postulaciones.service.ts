@@ -2,10 +2,11 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePostulacionDto } from './dto/create-postulacione.dto';
+import { AutomationsService } from '../automations/automations.service';
 
 @Injectable()
 export class PostulacionesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private automations: AutomationsService) {}
 
   /**
    * Crea una nueva postulación.
@@ -96,6 +97,12 @@ export class PostulacionesService {
         },
       });
 
+      await this.automations.executeTrigger(tenant.id, 'postulacion.creada', {
+        postulacion,
+        candidato,
+        vacante,
+      });
+
       return postulacion;
     } catch (e: any) {
       if (e.code === 'P2002') {
@@ -140,4 +147,3 @@ export class PostulacionesService {
     });
   }
 }
-

@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -224,5 +225,135 @@ export class CandidatosService {
     }
 
     return this.present(updated);
+  }
+
+  async listByTenant(
+    tenantSlug: string,
+    params: { search?: string; page?: number; limit?: number } = {},
+  ) {
+    const tenant = await this.prisma.tenants.findUnique({ where: { slug: tenantSlug } });
+    if (!tenant) throw new NotFoundException('Tenant no encontrado');
+
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(50, Math.max(1, params.limit ?? 10));
+    const skip = (page - 1) * limit;
+
+    const where: any = {
+      tenantId: tenant.id,
+      deletedAt: null,
+    };
+
+    if (params.search?.trim()) {
+      const value = params.search.trim();
+      where.OR = [
+        { nombre: { contains: value, mode: 'insensitive' } },
+        { email: { contains: value, mode: 'insensitive' } },
+        { telefono: { contains: value, mode: 'insensitive' } },
+      ];
+    }
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.candidatos.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          score: true,
+          postulaciones: {
+            select: {
+              id: true,
+              estado: true,
+              vacanteId: true,
+              createdAt: true,
+              vacante: {
+                select: {
+                  id: true,
+                  cargo: { select: { nombre: true } },
+                },
+              },
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 3,
+          },
+        },
+      }),
+      this.prisma.candidatos.count({ where }),
+    ]);
+
+    return {
+      data: items.map((item) => this.present(item)),
+      total,
+      page,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    };
+  }
+
+  async findDetailById(id: string, user: any) {
+    const candidato = await this.prisma.candidatos.findUnique({
+      where: { id },
+      include: {
+        tenant: { select: { id: true, slug: true, name: true } },
+        score: true,
+        postulaciones: {
+          include: {
+            vacante: {
+              select: {
+                id: true,
+                estado: true,
+                tenant: { select: { name: true, slug: true } },
+                cargo: { select: { nombre: true } },
+              },
+            },
+            entrevistas: {
+              select: {
+                id: true,
+                tipo: true,
+                inicioTs: true,
+                finTs: true,
+                canal: true,
+                resultado: true,
+              },
+              take: 3,
+              orderBy: { inicioTs: 'desc' },
+            },
+            feedbacks: {
+              select: {
+                id: true,
+                puntaje: true,
+                comentario: true,
+                recomendacion: true,
+                ts: true,
+              },
+              take: 3,
+              orderBy: { ts: 'desc' },
+            },
+            eventos: {
+              select: {
+                id: true,
+                estadoFrom: true,
+                estadoTo: true,
+                motivo: true,
+                ts: true,
+              },
+              take: 5,
+              orderBy: { ts: 'desc' },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    if (!candidato || candidato.deletedAt) throw new NotFoundException('Candidato no encontrado');
+
+    if (!user?.isSuperAdmin) {
+      const candidateTenant = (candidato as any)?.tenant?.slug;
+      if (!candidateTenant || candidateTenant !== user?.tenant) {
+        throw new ForbiddenException('No tienes acceso a este candidato');
+      }
+    }
+
+    return this.present(candidato);
   }
 }
