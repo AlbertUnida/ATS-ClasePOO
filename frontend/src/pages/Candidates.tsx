@@ -6,7 +6,9 @@ import {
   fetchCandidateDetail,
   fetchCandidates,
   fetchPostulaciones,
+  fetchScoringTop,
   type PostulacionItem,
+  type ScoringResult,
 } from "../api/backend";
 
 const STATUS_COLUMNS = [
@@ -47,11 +49,15 @@ function CandidatesPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<CandidateDetail | null>(null);
   const [kanbanItems, setKanbanItems] = useState<PostulacionItem[]>([]);
+  const [scoring, setScoring] = useState<ScoringResult[]>([]);
 
   const [loadingList, setLoadingList] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [loadingKanban, setLoadingKanban] = useState(false);
+  const [loadingScore, setLoadingScore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [minScore, setMinScore] = useState(0);
+  const [topLimit, setTopLimit] = useState(5);
 
   useEffect(() => {
     setPage(1);
@@ -61,7 +67,8 @@ function CandidatesPage() {
     if (!effectiveTenant) return;
     void loadCandidates(effectiveTenant, page, searchTerm);
     void loadKanban(effectiveTenant);
-  }, [effectiveTenant, page, searchTerm]);
+    void loadScoring(effectiveTenant, topLimit);
+  }, [effectiveTenant, page, searchTerm, topLimit]);
 
   useEffect(() => {
     if (!selectedId) {
@@ -115,6 +122,20 @@ function CandidatesPage() {
     }
   };
 
+  const loadScoring = async (tenant: string, top: number) => {
+    if (!tenant) return;
+    setLoadingScore(true);
+    setError(null);
+    try {
+      const data = await fetchScoringTop(tenant, top);
+      setScoring(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo cargar el ranking de scoring.");
+    } finally {
+      setLoadingScore(false);
+    }
+  };
+
   const groupedKanban = useMemo(() => {
     const groups: Record<string, PostulacionItem[]> = {
       postulado: [],
@@ -141,6 +162,11 @@ function CandidatesPage() {
 
   const recentPostulaciones = detail?.postulaciones ?? [];
   const perfilEntries = detail?.perfil && typeof detail.perfil === "object" ? Object.entries(detail.perfil) : [];
+
+  const filteredCandidates = useMemo(() => {
+    if (!minScore) return candidates;
+    return candidates.filter((item) => (item.score?.puntajeTotal ?? 0) >= minScore);
+  }, [candidates, minScore]);
 
   return (
     <div className="page">
@@ -171,21 +197,29 @@ function CandidatesPage() {
               <h2>Candidatos registrados</h2>
               <p>Selecciona un registro para ver el detalle completo y su historial.</p>
             </div>
-            <form className="inline-form" onSubmit={handleSearchSubmit}>
-              <input
-                placeholder="Buscar por nombre, correo o teléfono"
-                value={searchInput}
-                onChange={(event) => setSearchInput(event.target.value)}
-              />
-              <button type="submit" className="button button--ghost" disabled={loadingList}>
-                Buscar
-              </button>
-            </form>
+          <form className="inline-form" onSubmit={handleSearchSubmit}>
+            <input
+              placeholder="Buscar por nombre, correo o teléfono"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+            />
+            <button type="submit" className="button button--ghost" disabled={loadingList}>
+              Buscar
+            </button>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              placeholder="Score mínimo"
+              value={minScore}
+              onChange={(event) => setMinScore(Number(event.target.value))}
+            />
+          </form>
           </header>
 
           {loadingList ? (
             <p className="muted">Cargando candidatos...</p>
-          ) : candidates.length === 0 ? (
+          ) : filteredCandidates.length === 0 ? (
             <p className="muted">No hay candidatos registrados con los filtros actuales.</p>
           ) : (
             <div className="table-container candidate-table">
@@ -199,7 +233,7 @@ function CandidatesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {candidates.map((item) => (
+                  {filteredCandidates.map((item) => (
                     <tr
                       key={item.id}
                       onClick={() => setSelectedId(item.id)}
@@ -325,6 +359,52 @@ function CandidatesPage() {
                 )}
               </div>
             </div>
+          )}
+        </article>
+
+        <article className="card">
+          <header className="card__header">
+            <div>
+              <h2>Ranking por scoring</h2>
+              <p>Mejores candidatos según el puntaje actual.</p>
+            </div>
+          </header>
+          <form
+            className="inline-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void loadScoring(effectiveTenant, topLimit);
+            }}
+          >
+            <label>
+              Top
+              <input
+                type="number"
+                min={1}
+                max={20}
+                value={topLimit}
+                onChange={(event) => setTopLimit(Number(event.target.value))}
+              />
+            </label>
+            <button type="submit" className="button button--ghost" disabled={loadingScore}>
+              {loadingScore ? "Actualizando..." : "Actualizar lista"}
+            </button>
+          </form>
+          {loadingScore ? (
+            <p className="muted">Calculando score...</p>
+          ) : scoring.length === 0 ? (
+            <p className="muted">Aún no hay puntajes registrados.</p>
+          ) : (
+            <ul className="score-list">
+              {scoring.map((item, index) => (
+                <li key={item.id} className="score-list__item">
+                  <div>
+                    <span className="score-rank">#{index + 1}</span> {item.nombre}
+                  </div>
+                  <span className="score-chip">{item.puntaje.toFixed(1)}</span>
+                </li>
+              ))}
+            </ul>
           )}
         </article>
       </section>

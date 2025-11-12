@@ -198,6 +198,24 @@ export function deleteRole(roleId: string) {
   });
 }
 
+export interface ScoringResult {
+  id: string;
+  nombre: string;
+  puntaje: number;
+  detalle: {
+    formacion: number;
+    experiencia: number;
+    habilidades: number;
+    competencias: number;
+    palabrasClave: number;
+  };
+}
+
+export function fetchScoringTop(tenant: string, top = 5) {
+  const params = new URLSearchParams({ tenant, top: String(top) });
+  return request<ScoringResult[]>(`/scoring/top?${params.toString()}`);
+}
+
 export interface CandidateScore {
   id: string;
   puntajeTotal: number;
