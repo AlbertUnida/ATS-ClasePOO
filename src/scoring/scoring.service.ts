@@ -40,41 +40,16 @@ export class ScoringService {
       throw new Error('Tenant no encontrado');
     }
 
-    const config =
-      (await this.prisma.scoringConfig.findUnique({ where: { tenantId: tenant.id } })) ??
-      (await this.prisma.scoringConfig.create({ data: { tenantId: tenant.id } }));
-
+    const config = await this.getOrCreateConfig(tenant.id);
     const candidatos = await this.prisma.candidatos.findMany({
       where: { tenantId: tenant.id, deletedAt: null },
     });
 
     const resultados = await Promise.all(
-      candidatos.map(async (registro) => {
-        const candidato = this.mapearCandidato(registro);
-        const puntaje = this.calcularCandidatoScore(candidato, config);
-
-        await this.prisma.candidatoScore.upsert({
-          where: { candidatoId: candidato.id },
-          update: { puntajeTotal: puntaje.total, detalleJson: puntaje.detalle },
-          create: {
-            candidatoId: candidato.id,
-            puntajeTotal: puntaje.total,
-            detalleJson: puntaje.detalle,
-          },
-        });
-
-        return {
-          id: candidato.id,
-          nombre: candidato.nombre,
-          puntaje: puntaje.total,
-          detalle: puntaje.detalle,
-        };
-      }),
+      candidatos.map((registro) => this.calcularYPersistir(registro, config)),
     );
 
-    return resultados
-      .sort((a, b) => b.puntaje - a.puntaje)
-      .slice(0, top);
+    return resultados.sort((a, b) => b.puntaje - a.puntaje).slice(0, top);
   }
 
   /**
@@ -138,7 +113,9 @@ export class ScoringService {
   private parsePerfil(perfilJson?: string | null) {
     if (!perfilJson) return undefined;
     try {
-      return typeof perfilJson === 'string' ? JSON.parse(perfilJson) : perfilJson;
+      return typeof perfilJson === 'string'
+        ? JSON.parse(perfilJson)
+        : perfilJson;
     } catch {
       return undefined;
     }
@@ -184,5 +161,68 @@ export class ScoringService {
       competenciasPeso: pesos.competenciasPeso * factor,
       palabrasClavePeso: pesos.palabrasClavePeso * factor,
     };
+  }
+
+  private async getOrCreateConfig(tenantId: string) {
+    return (
+      (await this.prisma.scoringConfig.findUnique({ where: { tenantId } })) ??
+      (await this.prisma.scoringConfig.create({ data: { tenantId } }))
+    );
+  }
+
+  private async calcularYPersistir(
+    registro: any,
+    config: ScoringConfigWeights,
+  ) {
+    const candidato = this.mapearCandidato(registro);
+    const puntaje = this.calcularCandidatoScore(candidato, config);
+
+    await this.prisma.candidatoScore.upsert({
+      where: { candidatoId: candidato.id },
+      update: { puntajeTotal: puntaje.total, detalleJson: puntaje.detalle },
+      create: {
+        candidatoId: candidato.id,
+        puntajeTotal: puntaje.total,
+        detalleJson: puntaje.detalle,
+      },
+    });
+
+    return {
+      id: candidato.id,
+      nombre: candidato.nombre,
+      puntaje: puntaje.total,
+      detalle: puntaje.detalle,
+    };
+  }
+
+  async recalcularCandidato(candidatoId: string) {
+    const candidato = await this.prisma.candidatos.findUnique({
+      where: { id: candidatoId },
+    });
+    if (!candidato) {
+      throw new Error('Candidato no encontrado');
+    }
+    if (!candidato.tenantId) {
+      throw new Error('El candidato no est�� asociado a un tenant');
+    }
+    const config = await this.getOrCreateConfig(candidato.tenantId);
+    return this.calcularYPersistir(candidato, config);
+  }
+
+  async recalcularTenant(tenantSlug: string) {
+    const tenant = await this.prisma.tenants.findUnique({
+      where: { slug: tenantSlug.toLowerCase() },
+    });
+    if (!tenant) {
+      throw new Error('Tenant no encontrado');
+    }
+    const config = await this.getOrCreateConfig(tenant.id);
+    const candidatos = await this.prisma.candidatos.findMany({
+      where: { tenantId: tenant.id, deletedAt: null },
+    });
+    await Promise.all(
+      candidatos.map((registro) => this.calcularYPersistir(registro, config)),
+    );
+    return candidatos.length;
   }
 }

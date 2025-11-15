@@ -12,11 +12,7 @@ export const clearCandidateToken = () => {
   localStorage.removeItem(CANDIDATE_TOKEN_KEY);
 };
 
-async function candidateRequest<TResponse>(
-  path: string,
-  init: RequestInit = {},
-  requireAuth = true,
-): Promise<TResponse> {
+async function candidateRequest<TResponse>(path: string, init: RequestInit = {}, requireAuth = true): Promise<TResponse> {
   const token = getStoredCandidateToken();
   const headers = new Headers(init.headers ?? {});
 
@@ -24,14 +20,21 @@ async function candidateRequest<TResponse>(
     headers.set("Content-Type", "application/json");
   }
 
-  if (requireAuth && token && !headers.has("Authorization")) {
+  if (requireAuth) {
+    if (!token) {
+      throw new Error("Sesión expirada. Inicia sesión nuevamente.");
+    }
+    if (!headers.has("Authorization")) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+  } else if (token && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${token}`);
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers,
-    credentials: "omit",
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -131,6 +134,11 @@ export interface CandidatePostulacionPayload {
   fuente?: string;
   mensaje?: string;
   cvExtraUrl?: string;
+  formacionNivel?: string;
+  anosExperiencia?: number;
+  habilidadesTecnicas?: string[];
+  competenciasBlandas?: string[];
+  palabrasClave?: string[];
 }
 
 export function postularVacanteComoCandidato(body: CandidatePostulacionPayload) {

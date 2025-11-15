@@ -34,6 +34,25 @@ function getEstadoTone(estado: string) {
   return "neutral";
 }
 
+function mapEstadoToColumn(estado: string) {
+  const normalized = estado.toLowerCase();
+  if (normalized.includes("contrat") || normalized.includes("finaliz") || normalized.includes("ingres")) {
+    return "contratado";
+  }
+  if (normalized.includes("descart") || normalized.includes("rechaz") || normalized.includes("cancel")) {
+    return "descartado";
+  }
+  if (
+    normalized.includes("entrevista") ||
+    normalized.includes("proceso") ||
+    normalized.includes("evalu") ||
+    normalized.includes("screen")
+  ) {
+    return "en_proceso";
+  }
+  return "postulado";
+}
+
 function CandidatesPage() {
   const { user } = useAuth();
   const isSuperAdmin = user?.isSuperAdmin;
@@ -46,6 +65,7 @@ function CandidatesPage() {
   const [limit] = useState(10);
   const [candidates, setCandidates] = useState<CandidateListItem[]>([]);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<CandidateDetail | null>(null);
   const [kanbanItems, setKanbanItems] = useState<PostulacionItem[]>([]);
@@ -94,7 +114,10 @@ function CandidatesPage() {
         search: search?.trim() ? search : undefined,
       });
       setCandidates(response.data);
-      setTotalPages(response.totalPages);
+      const totalFromResponse = response.total ?? response.data.length;
+      setTotalItems(totalFromResponse);
+      const computedTotalPages = response.totalPages ?? Math.max(1, Math.ceil(totalFromResponse / limit));
+      setTotalPages(computedTotalPages);
       const existsInPage = response.data.find((item) => item.id === selectedId);
       if (response.data.length > 0 && !existsInPage) {
         setSelectedId(response.data[0].id);
@@ -104,6 +127,8 @@ function CandidatesPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudieron cargar los candidatos.");
+      setTotalItems(0);
+      setTotalPages(1);
     } finally {
       setLoadingList(false);
     }
@@ -114,7 +139,7 @@ function CandidatesPage() {
     setError(null);
     try {
       const data = await fetchPostulaciones({ tenant });
-      setKanbanItems(data);
+      setKanbanItems(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo cargar el resumen de postulaciones.");
     } finally {
@@ -137,19 +162,16 @@ function CandidatesPage() {
   };
 
   const groupedKanban = useMemo(() => {
-    const groups: Record<string, PostulacionItem[]> = {
-      postulado: [],
-      en_proceso: [],
-      descartado: [],
-      contratado: [],
-    };
+    const groups = STATUS_COLUMNS.reduce(
+      (acc, column) => {
+        acc[column.key] = [];
+        return acc;
+      },
+      {} as Record<(typeof STATUS_COLUMNS)[number]["key"], PostulacionItem[]>,
+    );
     kanbanItems.forEach((item) => {
-      const key = (item.estado ?? "").toLowerCase();
-      if (groups[key]) {
-        groups[key].push(item);
-      } else {
-        groups.postulado.push(item);
-      }
+      const key = mapEstadoToColumn(item.estado ?? "");
+      groups[key].push(item);
     });
     return groups;
   }, [kanbanItems]);
@@ -162,18 +184,32 @@ function CandidatesPage() {
 
   const recentPostulaciones = detail?.postulaciones ?? [];
   const perfilEntries = detail?.perfil && typeof detail.perfil === "object" ? Object.entries(detail.perfil) : [];
+  const selectedCandidate = useMemo(
+    () => candidates.find((item) => item.id === selectedId),
+    [candidates, selectedId],
+  );
 
   const filteredCandidates = useMemo(() => {
     if (!minScore) return candidates;
     return candidates.filter((item) => (item.score?.puntajeTotal ?? 0) >= minScore);
   }, [candidates, minScore]);
 
+  const disablePrev = page <= 1 || loadingList || totalPages <= 1;
+  const disableNext = page >= totalPages || loadingList || totalPages <= 1;
+  const showPagination = totalItems > limit;
+
+  const derivedScore = detail?.score?.puntajeTotal ?? selectedCandidate?.score?.puntajeTotal;
+  const hasScore = typeof derivedScore === "number";
+  const detailScoreDisplay = hasScore ? `${derivedScore.toFixed(1)} / 100` : "Sin score";
+  const paginationFrom = totalItems === 0 ? 0 : (page - 1) * limit + 1;
+  const paginationTo = totalItems === 0 ? 0 : Math.min(page * limit, totalItems);
+
   return (
     <div className="page">
       <header className="page__header">
         <div>
           <p className="eyebrow">Talento</p>
-          <h1>Gestión de candidatos</h1>
+          <h1>Gestion de candidatos</h1>
           <p>Filtra, consulta y da seguimiento a cada postulante con puntajes y estados centralizados.</p>
         </div>
         {isSuperAdmin && (
@@ -190,31 +226,36 @@ function CandidatesPage() {
 
       {error && <div className="alert alert--error">{error}</div>}
 
-      <section className="grid-two">
+      <section className="candidate-grid">
         <article className="card">
-          <header className="card__header">
+          <header className="card__header card__header--split">
             <div>
               <h2>Candidatos registrados</h2>
               <p>Selecciona un registro para ver el detalle completo y su historial.</p>
             </div>
-          <form className="inline-form" onSubmit={handleSearchSubmit}>
-            <input
-              placeholder="Buscar por nombre, correo o teléfono"
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-            />
-            <button type="submit" className="button button--ghost" disabled={loadingList}>
-              Buscar
-            </button>
-            <input
-              type="number"
-              min={0}
-              max={100}
-              placeholder="Score mínimo"
-              value={minScore}
-              onChange={(event) => setMinScore(Number(event.target.value))}
-            />
-          </form>
+            <form className="inline-form inline-form--compact" onSubmit={handleSearchSubmit}>
+              <label>
+                Buscar
+                <input
+                  placeholder="Nombre, correo o telefono"
+                  value={searchInput}
+                  onChange={(event) => setSearchInput(event.target.value)}
+                />
+              </label>
+              <label>
+                Score minimo
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={minScore}
+                  onChange={(event) => setMinScore(Number(event.target.value))}
+                />
+              </label>
+              <button type="submit" className="button button--ghost" disabled={loadingList}>
+                Buscar
+              </button>
+            </form>
           </header>
 
           {loadingList ? (
@@ -222,50 +263,50 @@ function CandidatesPage() {
           ) : filteredCandidates.length === 0 ? (
             <p className="muted">No hay candidatos registrados con los filtros actuales.</p>
           ) : (
-            <div className="table-container candidate-table">
-              <table>
+              <div className="table-container candidate-table">
+                <table>
                 <thead>
                   <tr>
                     <th>Nombre</th>
                     <th>Correo</th>
-                    <th>Última actividad</th>
+                    <th>Ultima actividad</th>
                     <th>Puntaje</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredCandidates.map((item) => (
-                    <tr
-                      key={item.id}
-                      onClick={() => setSelectedId(item.id)}
-                      className={selectedId === item.id ? "selected" : ""}
-                    >
-                      <td>{item.nombre}</td>
-                      <td>{item.email}</td>
-                      <td>{item.postulaciones?.[0]?.createdAt ? formatDate(item.postulaciones[0].createdAt) : "N/A"}</td>
-                      <td>{item.score?.puntajeTotal ? `${item.score.puntajeTotal.toFixed(1)} / 100` : "Sin score"}</td>
-                    </tr>
-                  ))}
+                  {filteredCandidates.map((item) => {
+                    const rowScore = item.score?.puntajeTotal;
+                    return (
+                      <tr
+                        key={item.id}
+                        onClick={() => setSelectedId(item.id)}
+                        className={selectedId === item.id ? "selected" : ""}
+                      >
+                        <td>{item.nombre}</td>
+                        <td>{item.email}</td>
+                        <td>{item.postulaciones?.[0]?.createdAt ? formatDate(item.postulaciones[0].createdAt) : "N/A"}</td>
+                        <td>{typeof rowScore === "number" ? `${rowScore.toFixed(1)} / 100` : "Sin score"}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
 
-          {candidates.length > 0 && (
+          {showPagination && (
             <div className="pagination">
-              <button
-                type="button"
-                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                disabled={page <= 1 || loadingList}
-              >
+              <button type="button" onClick={() => setPage((prev) => Math.max(1, prev - 1))} disabled={disablePrev}>
                 Anterior
               </button>
               <span>
-                Página {page} de {totalPages}
+                Pagina {page} de {totalPages}
+                {totalItems > 0 && ` | Registros ${paginationFrom}-${paginationTo} de ${totalItems}`}
               </span>
               <button
                 type="button"
                 onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={page >= totalPages || loadingList}
+                disabled={disableNext}
               >
                 Siguiente
               </button>
@@ -277,14 +318,14 @@ function CandidatesPage() {
           <header className="card__header">
             <div>
               <h2>Detalle del candidato</h2>
-              <p>Información de contacto, CV y puntajes.</p>
+              <p>Informacion de contacto, CV y puntajes.</p>
             </div>
           </header>
 
           {loadingDetail ? (
             <p className="muted">Cargando detalle...</p>
           ) : !detail ? (
-            <p className="muted">Selecciona un candidato para ver su información.</p>
+            <p className="muted">Selecciona un candidato para ver su informacion.</p>
           ) : (
             <div className="candidate-detail">
               <div className="candidate-detail__header">
@@ -295,7 +336,8 @@ function CandidatesPage() {
                 </div>
                 <div className="candidate-score">
                   <p>Puntaje total</p>
-                  <strong>{detail.score?.puntajeTotal ? detail.score.puntajeTotal.toFixed(1) : "Sin score"}</strong>
+                  <strong>{detailScoreDisplay}</strong>
+                  <span className="muted">{hasScore ? "Score actualizado" : "Pendiente de calculo"}</span>
                 </div>
               </div>
 
@@ -336,7 +378,7 @@ function CandidatesPage() {
                       <li key={postulacion.id}>
                         <div>
                           <p className="muted">
-                            {postulacion.vacante?.cargo?.nombre ?? "Vacante sin nombre"} ·{" "}
+                            {postulacion.vacante?.cargo?.nombre ?? "Vacante sin nombre"} {" - "}
                             {formatDate(postulacion.createdAt)}
                           </p>
                           <div className="status-chip" data-tone={getEstadoTone(postulacion.estado)}>
@@ -344,13 +386,11 @@ function CandidatesPage() {
                           </div>
                         </div>
                         {postulacion.entrevistas && postulacion.entrevistas.length > 0 && (
-                          <p className="muted">
-                            Última entrevista: {formatDate(postulacion.entrevistas[0].inicioTs)}
-                          </p>
+                          <p className="muted">Ultima entrevista: {formatDate(postulacion.entrevistas[0].inicioTs)}</p>
                         )}
                         {postulacion.feedbacks && postulacion.feedbacks.length > 0 && (
                           <p className="muted">
-                            Feedback: {postulacion.feedbacks[0].recomendacion ? "Recomienda" : "Revisión pendiente"}
+                            Feedback: {postulacion.feedbacks[0].recomendacion ? "Recomienda" : "Revision pendiente"}
                           </p>
                         )}
                       </li>
@@ -363,37 +403,47 @@ function CandidatesPage() {
         </article>
 
         <article className="card">
-          <header className="card__header">
+          <header className="card__header card__header--split">
             <div>
               <h2>Ranking por scoring</h2>
-              <p>Mejores candidatos según el puntaje actual.</p>
+              <p>Mejores candidatos segun el puntaje actual.</p>
+            </div>
+            <div className="card__tools">
+              <form
+                className="inline-form inline-form--compact"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void loadScoring(effectiveTenant, topLimit);
+                }}
+              >
+                <label>
+                  Top
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={topLimit}
+                    onChange={(event) => setTopLimit(Number(event.target.value))}
+                  />
+                </label>
+                <button type="submit" className="button button--ghost" disabled={loadingScore}>
+                  {loadingScore ? "Actualizando..." : "Actualizar lista"}
+                </button>
+              </form>
+              <button
+                type="button"
+                className="button button--primary"
+                onClick={() => void loadScoring(effectiveTenant, topLimit)}
+                disabled={loadingScore}
+              >
+                Recalcular puntajes
+              </button>
             </div>
           </header>
-          <form
-            className="inline-form"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void loadScoring(effectiveTenant, topLimit);
-            }}
-          >
-            <label>
-              Top
-              <input
-                type="number"
-                min={1}
-                max={20}
-                value={topLimit}
-                onChange={(event) => setTopLimit(Number(event.target.value))}
-              />
-            </label>
-            <button type="submit" className="button button--ghost" disabled={loadingScore}>
-              {loadingScore ? "Actualizando..." : "Actualizar lista"}
-            </button>
-          </form>
           {loadingScore ? (
             <p className="muted">Calculando score...</p>
           ) : scoring.length === 0 ? (
-            <p className="muted">Aún no hay puntajes registrados.</p>
+            <p className="muted">Aun no hay puntajes registrados.</p>
           ) : (
             <ul className="score-list">
               {scoring.map((item, index) => (
@@ -413,11 +463,13 @@ function CandidatesPage() {
         <header className="card__header">
           <div>
             <h2>Kanban de postulaciones</h2>
-            <p>Visualiza rápidamente el estado de avance por cada etapa.</p>
+            <p>Visualiza rapidamente el estado de avance por cada etapa.</p>
           </div>
         </header>
         {loadingKanban ? (
           <p className="muted">Cargando tablero...</p>
+        ) : kanbanItems.length === 0 ? (
+          <p className="muted">No existen postulaciones para mostrar en este tenant.</p>
         ) : (
           <div className="kanban-board">
             {STATUS_COLUMNS.map((column) => (

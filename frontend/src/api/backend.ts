@@ -216,6 +216,23 @@ export function fetchScoringTop(tenant: string, top = 5) {
   return request<ScoringResult[]>(`/scoring/top?${params.toString()}`);
 }
 
+export interface RecalculateScoringPayload {
+  tenant?: string;
+  candidatoId?: string;
+}
+
+export interface RecalculateScoringResponse {
+  updated: number;
+  resultados?: ScoringResult[];
+}
+
+export function recalculateScoring(body: RecalculateScoringPayload) {
+  return request<RecalculateScoringResponse>('/scoring/recalculate', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
 export interface CandidateScore {
   id: string;
   puntajeTotal: number;

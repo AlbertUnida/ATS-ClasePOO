@@ -1,12 +1,114 @@
 // src/postulaciones/postulaciones.service.ts
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePostulacionDto } from './dto/create-postulacione.dto';
 import { AutomationsService } from '../automations/automations.service';
+import { ScoringService } from '../scoring/scoring.service';
+
+const FORMACION_SCORES: Record<string, number> = {
+  secundaria: 20,
+  tecnico: 40,
+  universitario_incompleto: 60,
+  universitario: 80,
+  universitario_completo: 80,
+  pregrado: 70,
+  postgrado: 100,
+  maestria: 95,
+  doctorado: 100,
+};
 
 @Injectable()
 export class PostulacionesService {
-  constructor(private prisma: PrismaService, private automations: AutomationsService) {}
+  constructor(
+    private prisma: PrismaService,
+    private automations: AutomationsService,
+    private scoring: ScoringService,
+  ) {}
+
+  private parsePerfil(perfilJson?: string | null) {
+    if (!perfilJson) return undefined;
+    try {
+      return JSON.parse(perfilJson);
+    } catch {
+      return undefined;
+    }
+  }
+
+  private buildSnapshot(
+    dto: CreatePostulacionDto,
+    perfilActual?: Record<string, any>,
+  ) {
+    const hasFormacion =
+      typeof dto.formacionNivel === 'string' &&
+      dto.formacionNivel.trim().length > 0;
+    const hasExperiencia =
+      typeof dto.anosExperiencia === 'number' &&
+      !Number.isNaN(dto.anosExperiencia);
+
+    const provided =
+      hasFormacion ||
+      hasExperiencia ||
+      (dto.habilidadesTecnicas?.length ?? 0) > 0 ||
+      (dto.competenciasBlandas?.length ?? 0) > 0 ||
+      (dto.palabrasClave?.length ?? 0) > 0;
+
+    if (!provided) return null;
+
+    const formacionNivel = dto.formacionNivel ?? perfilActual?.formacionNivel;
+    const anosExperiencia =
+      dto.anosExperiencia ?? perfilActual?.anosExperiencia;
+    const habilidadesTecnicas = dto.habilidadesTecnicas?.length
+      ? dto.habilidadesTecnicas
+      : (perfilActual?.habilidadesDetalle ?? []);
+    const competenciasBlandas = dto.competenciasBlandas?.length
+      ? dto.competenciasBlandas
+      : (perfilActual?.competenciasDetalle ?? []);
+    const palabrasClave = dto.palabrasClave?.length
+      ? dto.palabrasClave
+      : (perfilActual?.palabrasClaveDetalle ?? []);
+
+    const metricas = {
+      formacionScore: formacionNivel
+        ? (FORMACION_SCORES[formacionNivel] ?? 0)
+        : 0,
+      habilidadesMatch: Math.min((habilidadesTecnicas?.length ?? 0) * 20, 100),
+      competenciasMatch: Math.min((competenciasBlandas?.length ?? 0) * 20, 100),
+      palabrasClaveMatch: Math.min((palabrasClave?.length ?? 0) * 15, 100),
+    };
+
+    const snapshot = {
+      formacionNivel,
+      anosExperiencia,
+      habilidadesTecnicas,
+      competenciasBlandas,
+      palabrasClave,
+      metricas,
+    };
+
+    const perfilActualizado = {
+      ...(perfilActual ?? {}),
+      formacionNivel,
+      formacionScore: metricas.formacionScore,
+      anosExperiencia,
+      experiencia: {
+        ...(perfilActual?.experiencia ?? {}),
+        anios: anosExperiencia ?? perfilActual?.experiencia?.anios,
+      },
+      habilidadesDetalle: habilidadesTecnicas,
+      habilidadesMatch: metricas.habilidadesMatch,
+      competenciasDetalle: competenciasBlandas,
+      competenciasMatch: metricas.competenciasMatch,
+      palabrasClaveDetalle: palabrasClave,
+      palabrasClaveMatch: metricas.palabrasClaveMatch,
+    };
+
+    return { snapshot, perfilActualizado };
+  }
 
   /**
    * Crea una nueva postulación.
@@ -52,6 +154,18 @@ export class PostulacionesService {
       throw new BadRequestException('Candidato inválido para este tenant');
     }
 
+    const perfilActual = this.parsePerfil(candidato.perfilJson);
+    const snapshot = this.buildSnapshot(dto, perfilActual);
+
+    if (snapshot) {
+      await this.prisma.candidatos.update({
+        where: { id: candidato.id },
+        data: {
+          perfilJson: JSON.stringify(snapshot.perfilActualizado),
+        },
+      });
+    }
+
     try {
       const postulacion = await this.prisma.postulaciones.create({
         data: {
@@ -61,6 +175,9 @@ export class PostulacionesService {
           fuente: dto.fuente,
           mensaje: dto.mensaje,
           cvExtraUrl: dto.cvExtraUrl,
+          matchDetailsJson: snapshot
+            ? JSON.stringify(snapshot.snapshot)
+            : undefined,
           estado: 'postulado',
           createdByUserId: userContext.userId,
           createdByAccountId: userContext.accountId,
@@ -103,10 +220,16 @@ export class PostulacionesService {
         vacante,
       });
 
+      await this.scoring
+        .recalcularCandidato(candidato.id)
+        .catch(() => undefined);
+
       return postulacion;
     } catch (e: any) {
       if (e.code === 'P2002') {
-        throw new ConflictException('El candidato ya está postulado a esta vacante');
+        throw new ConflictException(
+          'El candidato ya está postulado a esta vacante',
+        );
       }
       throw e;
     }

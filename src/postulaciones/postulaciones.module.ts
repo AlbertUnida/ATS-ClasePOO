@@ -3,11 +3,12 @@ import { PostulacionesService } from './postulaciones.service';
 import { PostulacionesController } from './postulaciones.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AutomationsModule } from '../automations/automations.module';
+import { ScoringModule } from '../scoring/scoring.module';
 
 @Module({
-  imports: [PrismaModule, AutomationsModule],
+  imports: [PrismaModule, AutomationsModule, ScoringModule],
   controllers: [PostulacionesController],
   providers: [PostulacionesService],
-  exports: [PostulacionesService], // 👈 Necesario para que otros módulos lo usen
+  exports: [PostulacionesService],
 })
 export class PostulacionesModule {}
