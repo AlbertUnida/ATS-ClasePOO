@@ -71,7 +71,7 @@ export class VacantesService {
     const t = await this.prisma.tenants.findUnique({ where: { slug: tenantSlug } });
     if (!t) throw new NotFoundException('Tenant no encontrado');
 
-    const filtros: any = { tenantId: t.id };
+    const filtros: any = { tenantId: t.id, deletedAt: null };
     if (estado) {
       const normalized = estado.toLowerCase();
       if (!['abierta', 'pausada', 'cerrada'].includes(normalized)) {
@@ -219,6 +219,50 @@ export class VacantesService {
     }
 
     return updated;
+  }
+
+  async remove(id: string, user: any) {
+    const vacante = await this.prisma.vacantes.findUnique({ where: { id } });
+    if (!vacante || vacante.deletedAt) {
+      throw new NotFoundException('Vacante no encontrada o ya eliminada');
+    }
+    const tenant = await this.prisma.tenants.findUnique({ where: { id: vacante.tenantId } });
+    if (!tenant) throw new NotFoundException('Tenant no encontrado');
+
+    const isSuperAdmin = user.roles.includes('SUPERADMIN');
+    if (!isSuperAdmin && tenant.slug !== user.tenant) {
+      throw new ForbiddenException('No tienes acceso a esta vacante');
+    }
+    if (!isSuperAdmin && vacante.createdByUserId && vacante.createdByUserId !== user.id) {
+      throw new ForbiddenException('Solo el creador o un superadmin pueden eliminarla');
+    }
+
+    const deleted = await this.prisma.vacantes.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        updatedByUserId: user?.id,
+      },
+      include: { cargo: true },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        tenantId: tenant.id,
+        actorUserId: user?.id,
+        actorEmail: user?.email,
+        action: 'DELETE',
+        entity: 'Vacantes',
+        entityId: deleted.id,
+        note: 'Eliminación de vacante',
+      },
+    });
+
+    if (deleted.imagenUrl) {
+      await this.removeLocalFileIfExists(deleted.imagenUrl).catch(() => undefined);
+    }
+
+    return { id: deleted.id, deletedAt: deleted.deletedAt };
   }
 
   private async removeLocalFileIfExists(url: string) {

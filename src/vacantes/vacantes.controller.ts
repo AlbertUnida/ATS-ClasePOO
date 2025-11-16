@@ -12,6 +12,7 @@ import {
   BadRequestException,
   UploadedFile,
   UseInterceptors,
+  Delete,
 } from '@nestjs/common';
 import { VacantesService } from './vacantes.service';
 import { CreateVacanteDto } from './dto/create-vacante.dto';
@@ -136,6 +137,15 @@ export class VacantesController {
     if (!file) throw new BadRequestException('Archivo de imagen requerido');
     const publicPath = `/uploads/vacantes/${file.filename}`;
     return this.vacantes.updateImagen(id, publicPath, req.user);
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard('jwt'), AdminReclutadorOrSuperAdminGuard)
+  @ApiCookieAuth('access-token')
+  @ApiOperation({ summary: 'Eliminar (soft delete) una vacante' })
+  @ApiParam({ name: 'id', description: 'ID de la vacante' })
+  remove(@Param('id') id: string, @Req() req: any) {
+    return this.vacantes.remove(id, req.user);
   }
 
 }

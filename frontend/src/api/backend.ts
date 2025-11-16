@@ -77,7 +77,7 @@ export interface VacantePublica {
   publicSlug?: string | null;
   estado: string;
   tenant: { name: string; slug: string };
-  cargo: { id: string; nombre: string };
+  cargo: { id: string; nombre: string; competenciasJson?: string | null };
   visibilidad?: string | null;
   imagenUrl?: string | null;
 }
@@ -636,6 +636,7 @@ export function updateTenantUser(id: string, body: UpdateTenantUserPayload) {
 export interface CargoItem {
   id: string;
   nombre: string;
+  competencias?: Record<string, any> | null;
 }
 
 export function fetchCargos(tenantSlug?: string) {
@@ -679,6 +680,12 @@ export function updateVacante(id: string, body: UpdateVacantePayload) {
   return request<VacantePrivada>(`/vacantes/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify(body),
+  });
+}
+
+export function deleteVacante(id: string) {
+  return request<{ id: string }>(`/vacantes/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
   });
 }
 

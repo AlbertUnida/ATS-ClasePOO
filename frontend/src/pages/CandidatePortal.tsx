@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CandidateProfile } from "../api/candidate";
 import {
   candidateLogin,
@@ -13,7 +13,7 @@ import {
   type CandidatePostulacion,
 } from "../api/candidate";
 import type { VacantePublica } from "../api/backend";
-import { fetchVacantesPublicas, fetchVacantesPublicasTodas } from "../api/backend";
+import { API_BASE_URL, fetchVacantesPublicas, fetchVacantesPublicasTodas } from "../api/backend";
 
 interface CandidatePortalProps {
   preview?: boolean;
@@ -45,6 +45,15 @@ const DEFAULT_POSTULACIONES_PREVIEW: CandidatePostulacion[] = [
   },
 ];
 
+const FORMACION_OPTIONS = [
+  { value: "", label: "Selecciona tu nivel" },
+  { value: "secundaria", label: "Secundaria / Bachillerato" },
+  { value: "tecnico", label: "Técnico / Tecnicatura" },
+  { value: "universitario", label: "Universitario" },
+  { value: "postgrado", label: "Postgrado / Maestría" },
+  { value: "doctorado", label: "Doctorado" },
+];
+
 function CandidatePortal({ preview = false }: CandidatePortalProps) {
   const [tab, setTab] = useState<PortalTab>("login");
   const [profile, setProfile] = useState<CandidateProfile | null>(preview ? DEFAULT_PROFILE_PREVIEW : null);
@@ -64,27 +73,54 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [applyNotes, setApplyNotes] = useState("");
   const [applyCvUrl, setApplyCvUrl] = useState("");
+  const [applyFormacion, setApplyFormacion] = useState("");
+  const [applyExperiencia, setApplyExperiencia] = useState("");
+  const [applyHabilidades, setApplyHabilidades] = useState("");
+  const [applyCompetencias, setApplyCompetencias] = useState("");
+  const [applyKeywords, setApplyKeywords] = useState("");
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [registerForm, setRegisterForm] = useState({
     name: "",
     email: "",
     password: "",
     telefono: "",
-    cvUrl: "",
   });
   const [profileForm, setProfileForm] = useState({
     nombre: "",
     telefono: "",
-    cvUrl: "",
   });
 
   const isAuthenticated = !!profile && !preview;
+  const authCardRef = useRef<HTMLDivElement | null>(null);
+  const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [highlightAuth, setHighlightAuth] = useState(false);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const vacanteRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const resetMessages = () => {
     setErrorMessage(null);
     setStatusMessage(null);
   };
+
+  const resolveAssetUrl = (path?: string | null) => {
+    if (!path) return null;
+    if (path.startsWith("http://") || path.startsWith("https://")) return path;
+    const normalized = path.startsWith("/") ? path : `/${path}`;
+    return `${API_BASE_URL}${normalized}`;
+  };
+
+  const scrollToAuthCard = useCallback(() => {
+    if (highlightTimerRef.current) {
+      clearTimeout(highlightTimerRef.current);
+    }
+    authCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setHighlightAuth(true);
+    highlightTimerRef.current = setTimeout(() => setHighlightAuth(false), 2000);
+  }, []);
 
   const loadVacantes = useCallback(
     async (tenantSlug?: string) => {
@@ -127,7 +163,6 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
       setProfileForm({
         nombre: data.nombre ?? "",
         telefono: data.telefono ?? "",
-        cvUrl: data.cvUrl ?? "",
       });
       const postulacionesResponse = await fetchCandidatePostulaciones();
       setPostulaciones(postulacionesResponse.postulaciones ?? []);
@@ -145,16 +180,40 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
     void loadProfile();
   }, [loadVacantes, loadProfile]);
 
+  useEffect(() => {
+    return () => {
+      if (highlightTimerRef.current) {
+        clearTimeout(highlightTimerRef.current);
+      }
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    vacanteRefs.current = {};
+  }, [vacantes]);
+
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (preview) return;
     resetMessages();
+    setLoginError(null);
+    setLoginSubmitting(true);
     try {
       await candidateLogin(loginForm);
       setStatusMessage("Ingreso exitoso. ¡Bienvenida/o al portal de postulantes!");
       await loadProfile();
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "No se pudo iniciar sesión.");
+      let message = "Correo o contraseña incorrectos.";
+      if (error instanceof Error && error.message) {
+        message = error.message;
+      }
+      setErrorMessage(message);
+      setLoginError(message);
+    } finally {
+      setLoginSubmitting(false);
     }
   };
 
@@ -197,10 +256,6 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
     try {
       const updated = await uploadCandidateCv(file);
       setProfile(updated);
-      setProfileForm((prev) => ({
-        ...prev,
-        cvUrl: updated.cvUrl ?? prev.cvUrl,
-      }));
       setStatusMessage("CV actualizado correctamente.");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "No se pudo subir el CV.");
@@ -216,11 +271,18 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
     }
     if (!profile) {
       setErrorMessage("Debes iniciar sesión para postularte a una vacante.");
+      setTab("login");
+      scrollToAuthCard();
       return;
     }
     setSelectedVacante(vacante);
     setApplyNotes("");
     setApplyCvUrl(profile.cvUrl ?? "");
+    setApplyFormacion("");
+    setApplyExperiencia("");
+    setApplyHabilidades("");
+    setApplyCompetencias("");
+    setApplyKeywords("");
     setApplyModalOpen(true);
   };
 
@@ -229,11 +291,27 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
     setApplyNotes("");
     setApplyCvUrl("");
     setApplyingId(null);
+    setApplyFormacion("");
+    setApplyExperiencia("");
+    setApplyHabilidades("");
+    setApplyCompetencias("");
+    setApplyKeywords("");
   };
 
   const handleApply = async (
     vacante: VacantePublica,
-    extras?: { mensaje?: string; cvExtraUrl?: string },
+    extras?: Partial<
+      Pick<
+        CandidatePostulacionPayload,
+        | "mensaje"
+        | "cvExtraUrl"
+        | "formacionNivel"
+        | "anosExperiencia"
+        | "habilidadesTecnicas"
+        | "competenciasBlandas"
+        | "palabrasClave"
+      >
+    >,
   ) => {
     if (preview) {
       setStatusMessage("En modo vista previa las postulaciones están deshabilitadas.");
@@ -252,11 +330,21 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
         fuente: "portal",
         mensaje: extras?.mensaje,
         cvExtraUrl: extras?.cvExtraUrl,
+        formacionNivel: extras?.formacionNivel,
+        anosExperiencia: extras?.anosExperiencia,
+        habilidadesTecnicas: extras?.habilidadesTecnicas,
+        competenciasBlandas: extras?.competenciasBlandas,
+        palabrasClave: extras?.palabrasClave,
       });
       setStatusMessage("Postulación enviada. Puedes seguir el estado en la sección de postulaciones.");
       const postulacionesResponse = await fetchCandidatePostulaciones();
       setPostulaciones(postulacionesResponse.postulaciones ?? []);
-      setApplyModalOpen(false);
+      handleCloseApplyModal();
+      setTimeout(() => {
+        setToastMessage("Postulación enviada con éxito.");
+        if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+        toastTimerRef.current = setTimeout(() => setToastMessage(null), 4000);
+      }, 100);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "No se pudo registrar la postulación.");
     } finally {
@@ -267,9 +355,23 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
   const handleApplyFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedVacante) return;
+    const habilidades = applyHabilidades
+      ? applyHabilidades.split(",").map((item) => item.trim()).filter(Boolean)
+      : undefined;
+    const competencias = applyCompetencias
+      ? applyCompetencias.split(",").map((item) => item.trim()).filter(Boolean)
+      : undefined;
+    const palabras = applyKeywords
+      ? applyKeywords.split(",").map((item) => item.trim()).filter(Boolean)
+      : undefined;
     await handleApply(selectedVacante, {
       mensaje: applyNotes.trim() ? applyNotes.trim() : undefined,
       cvExtraUrl: applyCvUrl.trim() ? applyCvUrl.trim() : undefined,
+      formacionNivel: applyFormacion || undefined,
+      anosExperiencia: applyExperiencia ? Number(applyExperiencia) : undefined,
+      habilidadesTecnicas: habilidades,
+      competenciasBlandas: competencias,
+      palabrasClave: palabras,
     });
   };
 
@@ -293,6 +395,24 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
       [...postulaciones].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
     [postulaciones],
   );
+  const resolvedCvUrl = useMemo(() => {
+    if (!profile?.cvUrl) return null;
+    if (profile.cvUrl.startsWith("http")) return profile.cvUrl;
+    const normalized = profile.cvUrl.startsWith("/") ? profile.cvUrl : `/${profile.cvUrl}`;
+    return `${API_BASE_URL}${normalized}`;
+  }, [profile?.cvUrl]);
+
+  const featuredVacantes = useMemo(() => vacantes.filter((item) => item.imagenUrl), [vacantes]);
+
+  const handleSpotlightClick = (vacante: VacantePublica) => {
+    setSelectedVacante(vacante);
+    const target = vacanteRefs.current[vacante.id];
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      target.classList.add("vacante-card--highlight");
+      setTimeout(() => target.classList.remove("vacante-card--highlight"), 1200);
+    }
+  };
 
   const portalClassName = preview
     ? "candidate-portal candidate-portal--preview"
@@ -311,7 +431,10 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
               : "Inicia sesión o crea tu cuenta para comenzar."}
           </p>
         </div>
-        <div className="candidate-hero__card">
+        <div
+          className={`candidate-hero__card${highlightAuth ? " is-highlighted" : ""}`}
+          ref={authCardRef}
+        >
           {statusMessage && <div className="alert alert--success">{statusMessage}</div>}
           {errorMessage && <div className="alert alert--error">{errorMessage}</div>}
 
@@ -327,14 +450,20 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
                   <button
                     type="button"
                     className={`candidate-tabs__button${tab === "login" ? " active" : ""}`}
-                    onClick={() => setTab("login")}
+                    onClick={() => {
+                      setTab("login");
+                      setLoginError(null);
+                    }}
                   >
                     Iniciar sesión
                   </button>
                   <button
                     type="button"
                     className={`candidate-tabs__button${tab === "register" ? " active" : ""}`}
-                    onClick={() => setTab("register")}
+                    onClick={() => {
+                      setTab("register");
+                      setLoginError(null);
+                    }}
                   >
                     Registrarme
                   </button>
@@ -361,9 +490,13 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
                         minLength={8}
                       />
                     </label>
-                    <button type="submit" className="button button--primary">
-                      Ingresar
-                    </button>
+                  <button type="submit" className="button button--primary" disabled={loginSubmitting}>
+                    {loginSubmitting ? "Ingresando..." : "Ingresar"}
+                  </button>
+                  {loginError && <p className="form-error">{loginError}</p>}
+                    <p className="candidate-session__helper">
+                      ¿No tienes cuenta aún? Cambia a Registrarme para crearla.
+                    </p>
                   </form>
                 ) : (
                   <form className="candidate-form" onSubmit={handleRegister}>
@@ -401,17 +534,12 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
                         onChange={(event) => setRegisterForm({ ...registerForm, telefono: event.target.value })}
                       />
                     </label>
-                    <label>
-                      URL de CV (opcional)
-                      <input
-                        type="url"
-                        value={registerForm.cvUrl}
-                        onChange={(event) => setRegisterForm({ ...registerForm, cvUrl: event.target.value })}
-                      />
-                    </label>
                     <button type="submit" className="button button--primary">
                       Crear cuenta
                     </button>
+                    <p className="candidate-session__helper">
+                      ¿Ya tienes una cuenta? Vuelve a Iniciar sesión para ingresar.
+                    </p>
                   </form>
                 )}
               </div>
@@ -446,15 +574,6 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
                   />
                 </label>
                 <label>
-                  URL de CV
-                  <input
-                    type="url"
-                    value={profileForm.cvUrl}
-                    onChange={(event) => setProfileForm({ ...profileForm, cvUrl: event.target.value })}
-                    disabled={updatingProfile}
-                  />
-                </label>
-                <label>
                   Subir CV actualizado
                   <input type="file" accept=".pdf,.doc,.docx" onChange={handleCvUpload} disabled={uploadingCv} />
                 </label>
@@ -470,6 +589,58 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
         </div>
       </section>
 
+      {featuredVacantes.length > 0 && (
+        <section className="candidate-spotlight">
+          <header>
+            <div>
+              <h2>Oportunidades destacadas</h2>
+              <p>Explora rápidamente las vacantes con imagen destacada y accede con un clic.</p>
+            </div>
+          </header>
+          <div className="candidate-spotlight__track">
+            {featuredVacantes.map((vacante) => {
+              const imageUrl = resolveAssetUrl(vacante.imagenUrl);
+              if (!imageUrl) return null;
+              return (
+                <button
+                  type="button"
+                  key={vacante.id}
+                  className="candidate-spotlight__item"
+                  onClick={() => handleSpotlightClick(vacante)}
+                >
+                  <img src={imageUrl} alt={`Imagen de ${vacante.cargo?.nombre ?? "vacante"}`} />
+                  <span>{vacante.cargo?.nombre ?? "Vacante"}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {!preview && isAuthenticated && (
+        <section className="candidate-section candidate-section--cv">
+          <header className="candidate-section__header">
+            <div>
+              <h2>Tu CV</h2>
+              <p>Previsualiza el documento que los reclutadores verán al revisar tus postulaciones.</p>
+            </div>
+          </header>
+          <div className="candidate-cv-preview candidate-cv-preview--wide">
+            <div className="candidate-cv-preview__viewer candidate-cv-preview__viewer--wide">
+              {isAuthenticated ? (
+                resolvedCvUrl ? (
+                  <iframe title="CV cargado" src={`${resolvedCvUrl}#toolbar=0&navpanes=0`} loading="lazy" />
+                ) : (
+                  <p className="muted">Todavía no subiste un PDF. Usa “Subir CV actualizado” para cargarlo.</p>
+                )
+              ) : (
+                <p className="muted">Inicia sesión para subir y visualizar tu CV.</p>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {selectedVacante && (
         <section className="candidate-section candidate-section--detail">
           <header className="candidate-section__header">
@@ -481,7 +652,7 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
               type="button"
               className="button"
               onClick={() => handleOpenApplyModal(selectedVacante)}
-              disabled={preview || !isAuthenticated}
+              disabled={preview || applyingId === selectedVacante.id}
             >
               {preview ? "Vista previa" : isAuthenticated ? "Postularme" : "Inicia sesión"}
             </button>
@@ -561,6 +732,10 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
           {vacantes.map((vacante) => (
             <article
               key={vacante.id}
+              id={`vacante-${vacante.id}`}
+              ref={(el) => {
+                vacanteRefs.current[vacante.id] = el;
+              }}
               className={`candidate-vacante-card${selectedVacante?.id === vacante.id ? " selected" : ""}`}
               onClick={() => setSelectedVacante(vacante)}
             >
@@ -586,7 +761,7 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
                     event.stopPropagation();
                     handleOpenApplyModal(vacante);
                   }}
-                  disabled={preview || !isAuthenticated || applyingId === vacante.id}
+                  disabled={preview || applyingId === vacante.id}
                 >
                   {preview
                     ? "Solo vista previa"
@@ -654,12 +829,27 @@ function CandidatePortal({ preview = false }: CandidatePortalProps) {
           vacante={selectedVacante}
           notes={applyNotes}
           cvLink={applyCvUrl}
+          formacion={applyFormacion}
+          experiencia={applyExperiencia}
+          habilidades={applyHabilidades}
+          competencias={applyCompetencias}
+          keywords={applyKeywords}
           onClose={handleCloseApplyModal}
           onChangeNotes={setApplyNotes}
           onChangeCvLink={setApplyCvUrl}
+          onChangeFormacion={setApplyFormacion}
+          onChangeExperiencia={setApplyExperiencia}
+          onChangeHabilidades={setApplyHabilidades}
+          onChangeCompetencias={setApplyCompetencias}
+          onChangeKeywords={setApplyKeywords}
           onSubmit={handleApplyFormSubmit}
           submitting={applyingId === selectedVacante.id}
         />
+      )}
+      {toastMessage && (
+        <div className="candidate-toast">
+          {toastMessage}
+        </div>
       )}
     </div>
   );
@@ -669,10 +859,20 @@ interface CandidateApplyModalProps {
   vacante: VacantePublica;
   notes: string;
   cvLink: string;
+  formacion: string;
+  experiencia: string;
+  habilidades: string;
+  competencias: string;
+  keywords: string;
   submitting: boolean;
   onClose: () => void;
   onChangeNotes: (value: string) => void;
   onChangeCvLink: (value: string) => void;
+  onChangeFormacion: (value: string) => void;
+  onChangeExperiencia: (value: string) => void;
+  onChangeHabilidades: (value: string) => void;
+  onChangeCompetencias: (value: string) => void;
+  onChangeKeywords: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }
 
@@ -680,10 +880,20 @@ function CandidateApplyModal({
   vacante,
   notes,
   cvLink,
+  formacion,
+  experiencia,
+  habilidades,
+  competencias,
+  keywords,
   submitting,
   onClose,
   onChangeNotes,
   onChangeCvLink,
+  onChangeFormacion,
+  onChangeExperiencia,
+  onChangeHabilidades,
+  onChangeCompetencias,
+  onChangeKeywords,
   onSubmit,
 }: CandidateApplyModalProps) {
   return (
@@ -715,6 +925,56 @@ function CandidateApplyModal({
               placeholder="https://..."
               value={cvLink}
               onChange={(event) => onChangeCvLink(event.target.value)}
+            />
+          </label>
+          <div className="candidate-modal__grid">
+            <label>
+              Nivel de formación
+              <select value={formacion} onChange={(event) => onChangeFormacion(event.target.value)}>
+                {FORMACION_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Años de experiencia
+              <input
+                type="number"
+                min={0}
+                max={50}
+                placeholder="Ej: 5"
+                value={experiencia}
+                onChange={(event) => onChangeExperiencia(event.target.value)}
+              />
+            </label>
+          </div>
+          <label>
+            Habilidades técnicas (separadas por coma)
+            <textarea
+              rows={2}
+              placeholder="React, Node.js, SQL..."
+              value={habilidades}
+              onChange={(event) => onChangeHabilidades(event.target.value)}
+            />
+          </label>
+          <label>
+            Competencias blandas (separadas por coma)
+            <textarea
+              rows={2}
+              placeholder="Comunicación, liderazgo..."
+              value={competencias}
+              onChange={(event) => onChangeCompetencias(event.target.value)}
+            />
+          </label>
+          <label>
+            Palabras clave del CV (separadas por coma)
+            <textarea
+              rows={2}
+              placeholder="SAP, Scrum, Inglés B2..."
+              value={keywords}
+              onChange={(event) => onChangeKeywords(event.target.value)}
             />
           </label>
           <button type="submit" className="button button--primary" disabled={submitting}>

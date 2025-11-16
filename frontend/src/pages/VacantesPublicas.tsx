@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { fetchVacantesPublicas, VacantePublica } from "../api/backend";
 
 const TENANT_SUGGESTIONS = [
@@ -47,14 +47,15 @@ function VacantesPublicas() {
     ];
   }, [vacantes]);
 
-  const handleSearch = async (event?: FormEvent) => {
+  const handleSearch = async (event?: FormEvent, explicitSlug?: string) => {
     event?.preventDefault();
-    if (!tenant.trim()) return;
+    const targetSlug = (explicitSlug ?? tenant).trim();
+    if (!targetSlug) return;
     setLoading(true);
     setError(null);
 
     try {
-      const data = await fetchVacantesPublicas(tenant.trim());
+      const data = await fetchVacantesPublicas(targetSlug);
       setVacantes(data);
       setLastUpdated(new Date());
     } catch (err) {
@@ -67,8 +68,13 @@ function VacantesPublicas() {
 
   const handleSuggestion = (slug: string) => {
     setTenant(slug);
-    void handleSearch();
+    void handleSearch(undefined, slug);
   };
+
+  useEffect(() => {
+    void handleSearch(undefined, tenant);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="card vacantes-shell">

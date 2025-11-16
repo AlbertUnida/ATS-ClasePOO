@@ -1,17 +1,23 @@
-﻿import { FormEvent, useState } from "react";
+﻿import { FormEvent, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const DEFAULT_EMAIL = "super@tuempresa.com";
+const ROLE_OPTIONS = [
+  { value: "SUPERADMIN", label: "Root (Superadmin)", tenantSlug: "root" },
+  { value: "ADMIN", label: "Administrador / Gerencia" },
+  { value: "RECRUITER", label: "Reclutador / People Ops" },
+];
 
 function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [correo, setCorreo] = useState(DEFAULT_EMAIL);
   const [clave, setClave] = useState("");
-  const [tenant, setTenant] = useState("root");
+  const [rol, setRol] = useState(ROLE_OPTIONS[0].value);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const selectedRole = useMemo(() => ROLE_OPTIONS.find((option) => option.value === rol), [rol]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -19,7 +25,7 @@ function Login() {
     setError(null);
 
     try {
-      await login({ email: correo, password: clave, tenantSlug: tenant.trim() });
+      await login({ email: correo, password: clave, tenantSlug: selectedRole?.tenantSlug });
       navigate("/panel", { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "No fue posible iniciar sesion");
@@ -51,6 +57,7 @@ function Login() {
           <p className="login-card__subtitle">
             Accede con tu usuario corporativo y continua donde dejaste tu trabajo.
           </p>
+          {error && <div className="alert alert--error">{error}</div>}
 
           <form className="login-form" onSubmit={handleSubmit}>
             <label>
@@ -77,14 +84,20 @@ function Login() {
             </label>
 
             <label>
-              Empresa (tenant)
-              <input
-                value={tenant}
-                onChange={(event) => setTenant(event.target.value)}
-                required
-                placeholder="root"
-              />
+              Tipo de acceso
+              <select value={rol} onChange={(event) => setRol(event.target.value)}>
+                {ROLE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
+            <p className="login-helper">
+              {selectedRole?.tenantSlug
+                ? "Se conectará al tenant global root (superadmin)."
+                : "El sistema detectará automáticamente tu empresa según tu usuario."}
+            </p>
 
             <button type="submit" className="button button--primary" disabled={loading}>
               {loading ? "Verificando..." : "Ingresar"}

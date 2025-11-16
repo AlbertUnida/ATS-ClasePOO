@@ -9,6 +9,7 @@ import {
   CargoItem,
   UpdateVacantePayload,
   uploadVacanteImagen,
+  deleteVacante,
 } from "../api/backend";
 import { useAuth } from "../context/AuthContext";
 
@@ -39,7 +40,8 @@ function VacantesTenant() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const [createCargoNombre, setCreateCargoNombre] = useState("");
-  const [createCargoCompetencias, setCreateCargoCompetencias] = useState("");
+  const [createCargoRequisitos, setCreateCargoRequisitos] = useState("");
+  const [createCargoKeywords, setCreateCargoKeywords] = useState("");
   const [creatingCargo, setCreatingCargo] = useState(false);
   const [createCargoMessage, setCreateCargoMessage] = useState<string | null>(null);
   const [createCargoError, setCreateCargoError] = useState<string | null>(null);
@@ -70,6 +72,9 @@ function VacantesTenant() {
   const [editVacanteFile, setEditVacanteFile] = useState<File | null>(null);
   const [editVacantePreview, setEditVacantePreview] = useState<string | null>(null);
 
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [deletingVacante, setDeletingVacante] = useState(false);
+
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4050";
   const resolveAssetUrl = (path?: string | null) => {
     if (!path) return null;
@@ -83,10 +88,34 @@ function VacantesTenant() {
     return user.roles.includes("ADMIN") || user.roles.includes("RECLUTADOR");
   }, [user]);
 
-const selectedVacante = useMemo(
+  const selectedVacante = useMemo(
     () => (selectedId ? vacantes.find((item) => item.id === selectedId) ?? null : null),
     [selectedId, vacantes],
   );
+
+  const selectedCargoCompetencias = useMemo(() => {
+    if (!selectedVacante?.cargo?.competenciasJson) return null;
+    try {
+      return JSON.parse(selectedVacante.cargo.competenciasJson as unknown as string);
+    } catch {
+      return null;
+    }
+  }, [selectedVacante]);
+
+  const selectedRequisitos = useMemo(() => {
+    const raw = selectedCargoCompetencias?.requisitos;
+    return Array.isArray(raw) ? raw : [];
+  }, [selectedCargoCompetencias]);
+
+  const selectedKeywords = useMemo(() => {
+    const raw = selectedCargoCompetencias?.keywords;
+    return Array.isArray(raw) ? raw : [];
+  }, [selectedCargoCompetencias]);
+
+  const currentImagePreview = useMemo(() => {
+    if (editVacantePreview) return editVacantePreview;
+    return resolveAssetUrl(selectedVacante?.imagenUrl);
+  }, [editVacantePreview, selectedVacante]);
 
   const canEditSelected = useMemo(() => {
     if (!selectedVacante) return false;
@@ -251,18 +280,22 @@ useEffect(() => {
     setCreateCargoError(null);
 
     try {
-      let competenciasObj: Record<string, unknown> | undefined;
-      if (createCargoCompetencias.trim()) {
-        try {
-          competenciasObj = JSON.parse(createCargoCompetencias);
-        } catch (jsonError) {
-          throw new Error("Las competencias deben estar en formato JSON valido.");
-        }
-      }
+      const requisitos = createCargoRequisitos
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean);
+      const keywords = createCargoKeywords
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      const competenciasObj =
+        requisitos.length || keywords.length ? { requisitos, keywords } : undefined;
+
       await createCargo({ nombre: createCargoNombre.trim(), competencias: competenciasObj });
       setCreateCargoMessage("Cargo creado correctamente.");
       setCreateCargoNombre("");
-      setCreateCargoCompetencias("");
+      setCreateCargoRequisitos("");
+      setCreateCargoKeywords("");
       await loadCargos();
     } catch (err) {
       setCreateCargoError(err instanceof Error ? err.message : "No se pudo crear el cargo.");
@@ -364,6 +397,27 @@ useEffect(() => {
     }
   };
 
+  const handleDeleteVacante = async () => {
+    if (!selectedVacante) return;
+    const confirmDelete = window.confirm(
+      "¿Seguro deseas eliminar esta vacante? Los postulantes ya no podrán verla.",
+    );
+    if (!confirmDelete) return;
+    setDeletingVacante(true);
+    setUpdateError(null);
+    setUpdateMessage(null);
+    try {
+      await deleteVacante(selectedVacante.id);
+      setUpdateMessage("Vacante eliminada correctamente.");
+      setSelectedId(null);
+      await loadVacantes();
+    } catch (err) {
+      setUpdateError(err instanceof Error ? err.message : "No se pudo eliminar la vacante.");
+    } finally {
+      setDeletingVacante(false);
+    }
+  };
+
   if (!tenantSlug) {
     return (
       <section className="card">
@@ -386,8 +440,9 @@ useEffect(() => {
   }
 
   return (
-    <div className="vacantes-shell">
-      <section className="card vacantes-overview">
+    <>
+      <div className="vacantes-shell">
+        <section className="card vacantes-overview">
         <header className="vacantes-header">
           <div>
             <p className="pill pill--accent">Tenant {tenantSlug}</p>
@@ -476,9 +531,16 @@ useEffect(() => {
                   </p>
                 </header>
 
-                {editVacantePreview && (
-                  <div className="image-preview image-preview--detail">
-                    <img src={editVacantePreview} alt="Imagen asociada a la vacante" />
+                {currentImagePreview && (
+                  <div className="image-preview image-preview--detail" role="group" aria-label="Imagen de la vacante">
+                    <img src={currentImagePreview} alt="Imagen asociada a la vacante" />
+                    <button
+                      type="button"
+                      className="button button--ghost"
+                      onClick={() => setImagePreviewUrl(currentImagePreview)}
+                    >
+                      Ver imagen grande
+                    </button>
                   </div>
                 )}
 
@@ -506,6 +568,27 @@ useEffect(() => {
                     <dd>{selectedVacante.visibilidad ?? "No especificada"}</dd>
                   </div>
                 </dl>
+
+                {(selectedRequisitos.length > 0 || selectedKeywords.length > 0) && (
+                  <div className="vacante-requirements">
+                    {selectedRequisitos.length > 0 && (
+                      <div>
+                        <h4>Requerimientos clave</h4>
+                        <ul>
+                          {selectedRequisitos.map((req) => (
+                            <li key={req}>{req}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {selectedKeywords.length > 0 && (
+                      <div>
+                        <h4>Palabras clave sugeridas</h4>
+                        <p>{selectedKeywords.join(", ")}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <form className="form-grid" onSubmit={handleActualizarVacante}>
                   <label>
@@ -580,6 +663,16 @@ useEffect(() => {
                   <button type="submit" className="button button--primary" disabled={savingVacante || !canEditSelected}>
                     {savingVacante ? "Guardando..." : "Guardar cambios"}
                   </button>
+                  {canEditSelected && (
+                    <button
+                      type="button"
+                      className="button button--ghost danger"
+                      onClick={handleDeleteVacante}
+                      disabled={deletingVacante}
+                    >
+                      {deletingVacante ? "Eliminando..." : "Eliminar vacante"}
+                    </button>
+                  )}
                 </form>
 
                 {updateMessage && <div className="alert alert--success">{updateMessage}</div>}
@@ -682,8 +775,8 @@ useEffect(() => {
       <section className="card vacantes-form">
         <h3>Crear nuevo cargo</h3>
         <p className="text-muted">
-          Define cargos base para reutilizarlos en nuevas vacantes. Puedes adjuntar competencias en formato JSON para
-          integraciones futuras.
+          Define cargos base para reutilizarlos en nuevas vacantes. Agrega los requisitos y palabras clave que usarán los
+          reclutadores y el scoring.
         </p>
 
         <form className="form-grid" onSubmit={handleCrearCargo}>
@@ -698,11 +791,20 @@ useEffect(() => {
           </label>
 
           <label>
-            Competencias (JSON opcional)
+            Requerimientos (uno por línea)
             <textarea
-              value={createCargoCompetencias}
-              onChange={(event) => setCreateCargoCompetencias(event.target.value)}
-              placeholder='{"skills":["Comunicacion","Excel"]}'
+              value={createCargoRequisitos}
+              onChange={(event) => setCreateCargoRequisitos(event.target.value)}
+              placeholder={"Experiencia en soporte nivel 1\nCertificación ITIL\nInglés intermedio"}
+            />
+          </label>
+
+          <label>
+            Palabras clave (separadas por coma)
+            <textarea
+              value={createCargoKeywords}
+              onChange={(event) => setCreateCargoKeywords(event.target.value)}
+              placeholder="Windows, Service desk, Redes"
             />
           </label>
 
@@ -715,7 +817,19 @@ useEffect(() => {
         {createCargoError && <div className="alert alert--error">{createCargoError}</div>}
         {cargosError && <div className="alert alert--error">{cargosError}</div>}
       </section>
-    </div>
+      </div>
+      {imagePreviewUrl && (
+        <div className="image-modal" role="dialog" aria-modal="true">
+          <div className="image-modal__backdrop" onClick={() => setImagePreviewUrl(null)} />
+          <div className="image-modal__content">
+            <button type="button" className="button button--ghost image-modal__close" onClick={() => setImagePreviewUrl(null)}>
+              Cerrar
+            </button>
+            <img src={imagePreviewUrl} alt="Vista ampliada de la vacante" />
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

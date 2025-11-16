@@ -1,4 +1,4 @@
-![Talent Flow ATS](docs/assets/banner-login.png)
+﻿![Talent Flow ATS](docs/assets/banner-login.png)
 
 # Talent Flow ATS – Backend + Frontend
 
@@ -172,6 +172,20 @@ MYSQL_PASSWORD=devuser01
 Portal postulantes (registro propio) → `http://localhost:5174/postulantes`.
 
 ---
+
+---
+
+---
+
+## Flujo para publicar vacantes públicas
+
+1. **Crear o editar la vacante en “Vacantes internas”** (`/panel/vacantes-internas`). Completa cargo, descripción, responsables y define un `publicSlug` legible (ej. `soporte-tecnico-asuncion`). Sube una imagen y marca `visibilidad = PUBLICA`.
+2. **Cambiar el estado a “abierta”**. Sólo las vacantes públicas con estado `abierta` se envían al endpoint `GET /vacantes/publicas` y al portal externo.
+3. **Verificar desde “Vacantes públicas”** (`/panel/vacantes-publicas`). Selecciona el tenant (slug) y confirma que aparece en el catálogo.
+4. **Publicación en el portal de postulantes** (`/postulantes`). Los candidatos verán la ficha y completarán el formulario extendido (formación, experiencia, habilidades, competencias y palabras clave) que alimenta el módulo de scoring.
+5. **Seguimiento interno**. Desde “Candidatos” gestionas el ranking de scoring, el detalle de postulante y el kanban por estado.
+
+> Si no aparece en el catálogo público, revisa `publicSlug`, `visibilidad`, `estado` y el tenant utilizado en la consulta.
 
 ## Tests
 
