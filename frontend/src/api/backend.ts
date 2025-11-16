@@ -78,6 +78,8 @@ export interface VacantePublica {
   estado: string;
   tenant: { name: string; slug: string };
   cargo: { id: string; nombre: string; competenciasJson?: string | null };
+  ubicacion?: string | null;
+  tipoContrato?: string | null;
   visibilidad?: string | null;
   imagenUrl?: string | null;
 }

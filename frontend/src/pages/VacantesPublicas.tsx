@@ -2,12 +2,12 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { fetchVacantesPublicas, VacantePublica } from "../api/backend";
 
 const TENANT_SUGGESTIONS = [
-  { slug: "mamapan", label: "MAMAPAN" },
+  { slug: "mamapan", label: "Mamapan" },
   { slug: "tecnoedil", label: "Tecnoedil" },
-  { slug: "root", label: "Root (plantilla global)" },
+  { slug: "root", label: "Root (global)" },
 ];
 
-const ESTADO_COLORS: Record<string, { label: string; tone: "success" | "warning" | "neutral" }> = {
+const ESTADO_LABEL: Record<string, { label: string; tone: "success" | "warning" | "neutral" }> = {
   abierta: { label: "Abierta", tone: "success" },
   pausada: { label: "Pausada", tone: "warning" },
   cerrada: { label: "Cerrada", tone: "neutral" },
@@ -18,26 +18,48 @@ const formatoHora = new Intl.DateTimeFormat("es-PY", {
   timeStyle: "short",
 });
 
-function estadoBadge(estado: string) {
-  const base = ESTADO_COLORS[estado.toLowerCase()] ?? ESTADO_COLORS.neutral;
-  return base;
-}
-
 function VacantesPublicas() {
   const [tenant, setTenant] = useState("mamapan");
-  const [loading, setLoading] = useState(false);
   const [vacantes, setVacantes] = useState<VacantePublica[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const metrics = useMemo(() => {
-    if (!vacantes.length) {
-      return [
-        { label: "Total", value: 0, tone: "neutral" as const },
-        { label: "Abiertas", value: 0, tone: "success" as const },
-        { label: "Pausadas", value: 0, tone: "warning" as const },
-      ];
+  const [buscarTexto, setBuscarTexto] = useState("");
+  const [buscarUbicacion, setBuscarUbicacion] = useState("");
+  const [estadoSeleccionados, setEstadoSeleccionados] = useState<string[]>(["abierta"]);
+  const [soloPublicas, setSoloPublicas] = useState(true);
+
+  const handleSearch = async (event?: FormEvent, slug?: string) => {
+    event?.preventDefault();
+    const targetSlug = (slug ?? tenant).trim();
+    if (!targetSlug) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchVacantesPublicas(targetSlug);
+      setVacantes(data);
+      setLastUpdated(new Date());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudieron obtener las vacantes públicas.");
+      setVacantes([]);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    void handleSearch(undefined, tenant);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const toggleEstado = (estado: string) => {
+    setEstadoSeleccionados((prev) =>
+      prev.includes(estado) ? prev.filter((value) => value !== estado) : [...prev, estado],
+    );
+  };
+
+  const metrics = useMemo(() => {
     const abiertas = vacantes.filter((item) => item.estado.toLowerCase() === "abierta").length;
     const pausadas = vacantes.filter((item) => item.estado.toLowerCase() === "pausada").length;
     return [
@@ -47,70 +69,52 @@ function VacantesPublicas() {
     ];
   }, [vacantes]);
 
-  const handleSearch = async (event?: FormEvent, explicitSlug?: string) => {
-    event?.preventDefault();
-    const targetSlug = (explicitSlug ?? tenant).trim();
-    if (!targetSlug) return;
-    setLoading(true);
-    setError(null);
-
-    try {
-      const data = await fetchVacantesPublicas(targetSlug);
-      setVacantes(data);
-      setLastUpdated(new Date());
-    } catch (err) {
-      setVacantes([]);
-      setError(err instanceof Error ? err.message : "No se pudieron obtener las vacantes publicas.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSuggestion = (slug: string) => {
-    setTenant(slug);
-    void handleSearch(undefined, slug);
-  };
-
-  useEffect(() => {
-    void handleSearch(undefined, tenant);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const vacantesFiltradas = useMemo(() => {
+    return vacantes.filter((vacante) => {
+      if (soloPublicas && vacante.visibilidad?.toLowerCase() !== "publica") return false;
+      if (estadoSeleccionados.length && !estadoSeleccionados.includes(vacante.estado.toLowerCase())) return false;
+      if (buscarTexto.trim()) {
+        const serie = `${vacante.cargo?.nombre ?? ""} ${vacante.resumen ?? ""}`.toLowerCase();
+        if (!serie.includes(buscarTexto.toLowerCase().trim())) return false;
+      }
+      if (buscarUbicacion.trim()) {
+        const serie = `${vacante.ubicacion ?? ""} ${vacante.tenant?.name ?? ""}`.toLowerCase();
+        if (!serie.includes(buscarUbicacion.toLowerCase().trim())) return false;
+      }
+      return true;
+    });
+  }, [vacantes, soloPublicas, estadoSeleccionados, buscarTexto, buscarUbicacion]);
 
   return (
     <div className="card vacantes-shell">
       <header className="vacantes-header">
         <div>
-          <p className="pill pill--accent">Catalogo externo</p>
-          <h2>Vacantes publicas</h2>
+          <p className="pill pill--accent">Catálogo externo</p>
+          <h2>Vacantes públicas</h2>
           <p className="text-muted">
-            Explora las vacantes visibles para candidatos externos. Selecciona el tenant y consulta el endpoint{" "}
+            Explora las vacantes visibles para candidatos externos. Ajusta filtros y consulta el endpoint{" "}
             <code>GET /vacantes/publicas</code>.
           </p>
         </div>
         <form className="vacantes-form" onSubmit={handleSearch}>
           <label>
             Tenant (slug)
-            <input
-              value={tenant}
-              onChange={(event) => setTenant(event.target.value)}
-              placeholder="ej. mamapan"
-              required
-            />
+            <input value={tenant} onChange={(event) => setTenant(event.target.value)} placeholder="ej. mamapan" />
           </label>
           <button type="submit" className="button button--primary" disabled={loading}>
-            {loading ? "Buscando..." : "Buscar vacantes"}
+            {loading ? "Buscando..." : "Buscar"}
           </button>
         </form>
       </header>
 
       <div className="vacantes-suggestions">
-        <span>Atajos rapidos:</span>
+        <span>Atajos rápidos:</span>
         {TENANT_SUGGESTIONS.map((item) => (
           <button
             key={item.slug}
             type="button"
             className={`chip ${tenant === item.slug ? "chip--active" : ""}`}
-            onClick={() => handleSuggestion(item.slug)}
+            onClick={() => handleSearch(undefined, item.slug)}
           >
             {item.label}
           </button>
@@ -126,7 +130,7 @@ function VacantesPublicas() {
         ))}
         {lastUpdated && (
           <article className="mini-metric mini-metric--neutral">
-            <p>Ultima actualizacion</p>
+            <p>Última actualización</p>
             <strong>{formatoHora.format(lastUpdated)}</strong>
           </article>
         )}
@@ -134,76 +138,109 @@ function VacantesPublicas() {
 
       {error && <div className="alert alert--error">{error}</div>}
 
-      <div className="vacantes-grid">
-        {loading && (
-          <div className="vacantes-skeleton">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="skeleton-card">
-                <div className="skeleton-line skeleton-line--short" />
-                <div className="skeleton-line" />
-                <div className="skeleton-line skeleton-line--short" />
-              </div>
+      <div className="vacantes-publicas">
+        <aside className="vacantes-publicas__filters">
+          <h4>Filtros</h4>
+          <div className="filter-group">
+            <label>Estado</label>
+            {["abierta", "pausada", "cerrada"].map((estado) => (
+              <label key={estado} className="checkbox-inline">
+                <input
+                  type="checkbox"
+                  checked={estadoSeleccionados.includes(estado)}
+                  onChange={() => toggleEstado(estado)}
+                />
+                {estado.charAt(0).toUpperCase() + estado.slice(1)}
+              </label>
             ))}
           </div>
-        )}
-
-        {!loading && vacantes.length > 0 && (
-          <div className="vacantes-grid">
-            {vacantes.map((vacante) => {
-              const estadoInfo = estadoBadge(vacante.estado);
-              const imageSrc = resolveAssetUrl(vacante.imagenUrl);
-              return (
-                <article key={vacante.id} className="vacante-card">
-                  {imageSrc && (
-                    <div className="vacante-card__image">
-                      <img src={imageSrc} alt={`Imagen de ${vacante.cargo?.nombre ?? "vacante"}`} />
-                    </div>
-                  )}
-                  <header>
-                    <div>
-                      <p className="vacante-card__tenant">{vacante.tenant?.name ?? vacante.tenant?.slug}</p>
-                      <h3>{vacante.cargo?.nombre ?? "Cargo sin nombre"}</h3>
-                    </div>
-                    <span className={`status-chip status-chip--${estadoInfo.tone}`}>{estadoInfo.label}</span>
-                  </header>
-                  <p className="vacante-card__summary">
-                    {vacante.resumen ?? "Esta vacante aun no tiene un resumen cargado para candidatos externos."}
-                  </p>
-                  <dl className="vacante-card__meta">
-                    <div>
-                      <dt>Slug publico</dt>
-                      <dd>{vacante.publicSlug ?? "Sin slug registrado"}</dd>
-                    </div>
-                    <div>
-                      <dt>Visibilidad</dt>
-                      <dd>{vacante.visibilidad ?? "No especificada"}</dd>
-                    </div>
-                  </dl>
-                </article>
-              );
-            })}
+          <div className="filter-group">
+            <label>Visibilidad</label>
+            <label className="checkbox-inline">
+              <input type="checkbox" checked={soloPublicas} onChange={() => setSoloPublicas(!soloPublicas)} />
+              Solo públicas
+            </label>
           </div>
-        )}
-      </div>
+        </aside>
 
-      {!loading && !error && vacantes.length === 0 && (
-        <div className="empty-state">
-          <h3>No hay vacantes publicas para mostrar</h3>
-          <p>
-            Revisa que el tenant tenga vacantes activas con visibilidad publica o prueba con otro slug de la lista
-            superior.
-          </p>
-        </div>
-      )}
+        <section className="vacantes-publicas__lista">
+          <form className="vacantes-toolbar" onSubmit={handleSearch}>
+            <div>
+              <label htmlFor="searchText">¿Qué puesto?</label>
+              <input
+                id="searchText"
+                placeholder="Cargo o palabra clave"
+                value={buscarTexto}
+                onChange={(event) => setBuscarTexto(event.target.value)}
+              />
+            </div>
+            <div>
+              <label htmlFor="searchLocation">¿Dónde?</label>
+              <input
+                id="searchLocation"
+                placeholder="Ciudad, país..."
+                value={buscarUbicacion}
+                onChange={(event) => setBuscarUbicacion(event.target.value)}
+              />
+            </div>
+            <button type="submit" className="button button--primary" disabled={loading}>
+              {loading ? "Filtrando..." : "Buscar"}
+            </button>
+          </form>
+
+          {loading && (
+            <div className="vacantes-skeleton">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="skeleton-card">
+                  <div className="skeleton-line" />
+                  <div className="skeleton-line skeleton-line--short" />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!loading && vacantesFiltradas.length === 0 && (
+            <div className="empty-state">
+              <h3>No hay vacantes que cumplan los filtros</h3>
+              <p>Prueba con otra búsqueda o verifica que el tenant tenga vacantes abiertas.</p>
+            </div>
+          )}
+
+          {!loading && vacantesFiltradas.length > 0 && (
+            <table className="vacantes-table">
+              <thead>
+                <tr>
+                  <th>Cargo</th>
+                  <th>Ubicación</th>
+                  <th>Tipo de contrato</th>
+                  <th>Estado</th>
+                  <th>Visibilidad</th>
+                </tr>
+              </thead>
+              <tbody>
+                {vacantesFiltradas.map((vacante) => (
+                  <tr key={vacante.id}>
+                    <td>
+                      <strong>{vacante.cargo?.nombre ?? "Cargo sin nombre"}</strong>
+                      <p className="text-muted">{vacante.resumen ?? "Sin resumen disponible"}</p>
+                    </td>
+                    <td>{vacante.ubicacion ?? "Sin ubicación"}</td>
+                    <td>{vacante.tipoContrato ?? "No informado"}</td>
+                    <td>
+                      <span className={`status-chip status-chip--${ESTADO_LABEL[vacante.estado]?.tone ?? "neutral"}`}>
+                        {ESTADO_LABEL[vacante.estado]?.label ?? vacante.estado}
+                      </span>
+                    </td>
+                    <td>{vacante.visibilidad ?? "PUBLICA"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
 
 export default VacantesPublicas;
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4050";
-
-const resolveAssetUrl = (path?: string | null) => {
-  if (!path) return null;
-  if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  return `${API_BASE_URL}${path}`;
-};

@@ -1497,6 +1497,82 @@ tr:hover {
   color: var(--color-text-primary);
 }
 
+.vacantes-publicas {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.vacantes-publicas__filters {
+  border-radius: 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(233, 241, 250, 0.55);
+  padding: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.filter-group {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.checkbox-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.92rem;
+  color: var(--color-text-primary);
+}
+
+.vacantes-publicas__lista {
+  border-radius: 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #fff;
+  padding: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.vacantes-toolbar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.vacantes-toolbar label {
+  font-size: 0.85rem;
+  color: rgba(15, 23, 42, 0.72);
+}
+
+.vacantes-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.vacantes-table thead {
+  background: rgba(233, 241, 250, 0.55);
+}
+
+.vacantes-table th,
+.vacantes-table td {
+  text-align: left;
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.vacantes-table tbody tr:hover {
+  background: rgba(83, 51, 237, 0.03);
+}
+
+.vacantes-table .text-muted {
+  margin: 0;
+  color: rgba(15, 23, 42, 0.65);
+  font-size: 0.85rem;
+}
+
 .status-chip {
   padding: 0.4rem 0.85rem;
   border-radius: 999px;
@@ -2160,6 +2236,9 @@ tr:hover {
 
 @media (max-width: 1024px) {
   .vacantes-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .vacantes-publicas {
     grid-template-columns: minmax(0, 1fr);
   }
   .candidate-section__header {
