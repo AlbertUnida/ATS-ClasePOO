@@ -1,11 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { fetchVacantesPublicas, VacantePublica } from "../api/backend";
-
-const TENANT_SUGGESTIONS = [
-  { slug: "mamapan", label: "Mamapan" },
-  { slug: "tecnoedil", label: "Tecnoedil" },
-  { slug: "root", label: "Root (global)" },
-];
+import { useAuth } from "../context/AuthContext";
 
 const ESTADO_LABEL: Record<string, { label: string; tone: "success" | "warning" | "neutral" }> = {
   abierta: { label: "Abierta", tone: "success" },
@@ -19,7 +14,11 @@ const formatoHora = new Intl.DateTimeFormat("es-PY", {
 });
 
 function VacantesPublicas() {
-  const [tenant, setTenant] = useState("mamapan");
+  const { user } = useAuth();
+  const isSuperAdmin = !!user?.isSuperAdmin;
+  const defaultTenant = user?.tenant ?? "root";
+
+  const [tenant, setTenant] = useState(defaultTenant);
   const [vacantes, setVacantes] = useState<VacantePublica[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,9 +48,10 @@ function VacantesPublicas() {
   };
 
   useEffect(() => {
-    void handleSearch(undefined, tenant);
+    setTenant(defaultTenant);
+    void handleSearch(undefined, defaultTenant);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [defaultTenant]);
 
   const toggleEstado = (estado: string) => {
     setEstadoSeleccionados((prev) =>
@@ -99,27 +99,30 @@ function VacantesPublicas() {
         <form className="vacantes-form" onSubmit={handleSearch}>
           <label>
             Tenant (slug)
-            <input value={tenant} onChange={(event) => setTenant(event.target.value)} placeholder="ej. mamapan" />
+            {isSuperAdmin ? (
+              <input value={tenant} onChange={(event) => setTenant(event.target.value)} placeholder="ej. tecnoedil" />
+            ) : (
+              <input value={tenant} readOnly />
+            )}
           </label>
           <button type="submit" className="button button--primary" disabled={loading}>
-            {loading ? "Buscando..." : "Buscar"}
+            {loading ? "Buscando..." : "Refrescar"}
           </button>
         </form>
       </header>
 
-      <div className="vacantes-suggestions">
-        <span>Atajos rápidos:</span>
-        {TENANT_SUGGESTIONS.map((item) => (
+      {isSuperAdmin && (
+        <div className="vacantes-suggestions">
+          <span>Atajos rapidos:</span>
           <button
-            key={item.slug}
             type="button"
-            className={`chip ${tenant === item.slug ? "chip--active" : ""}`}
-            onClick={() => handleSearch(undefined, item.slug)}
+            className={`chip ${tenant === "root" ? "chip--active" : ""}`}
+            onClick={() => handleSearch(undefined, "root")}
           >
-            {item.label}
+            Root (global)
           </button>
-        ))}
-      </div>
+        </div>
+      )}
 
       <section className="mini-metrics">
         {metrics.map((metric) => (

@@ -1,23 +1,37 @@
-﻿import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const DEFAULT_EMAIL = "super@tuempresa.com";
+
 const ROLE_OPTIONS = [
   { value: "SUPERADMIN", label: "Root (Superadmin)", tenantSlug: "root" },
   { value: "ADMIN", label: "Administrador / Gerencia" },
   { value: "RECRUITER", label: "Reclutador / People Ops" },
 ];
 
+const deriveTenantSlug = (email: string) => {
+  const [, domain] = email.toLowerCase().split("@");
+  if (!domain) return "";
+  const company = domain.split(".")[0];
+  return company?.replace(/[^a-z0-9-]/gi, "") ?? "";
+};
+
 function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
+
   const [correo, setCorreo] = useState(DEFAULT_EMAIL);
   const [clave, setClave] = useState("");
   const [rol, setRol] = useState(ROLE_OPTIONS[0].value);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const selectedRole = useMemo(() => ROLE_OPTIONS.find((option) => option.value === rol), [rol]);
+  const inferredTenant = useMemo(() => {
+    if (selectedRole?.tenantSlug) return selectedRole.tenantSlug;
+    return deriveTenantSlug(correo);
+  }, [correo, selectedRole]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -25,7 +39,11 @@ function Login() {
     setError(null);
 
     try {
-      await login({ email: correo, password: clave, tenantSlug: selectedRole?.tenantSlug });
+      await login({
+        email: correo,
+        password: clave,
+        tenantSlug: inferredTenant || undefined,
+      });
       navigate("/panel", { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "No fue posible iniciar sesion");
@@ -39,7 +57,7 @@ function Login() {
       <section className="login-screen__hero">
         <div className="login-screen__mark">
           <span className="login-screen__mark-pill">Talent Flow ats</span>
-          <h1>Reclutá desde un panel unificado</h1>
+          <h1>Recluta desde un panel unificado</h1>
           <p>
             Supervisa cada vacante, entrevista y oferta en tiempo real. Manten a todo el equipo alineado y acelera la
             contratacion de talento clave.
@@ -95,8 +113,10 @@ function Login() {
             </label>
             <p className="login-helper">
               {selectedRole?.tenantSlug
-                ? "Se conectará al tenant global root (superadmin)."
-                : "El sistema detectará automáticamente tu empresa según tu usuario."}
+                ? "Se conectara al tenant global root (superadmin)."
+                : inferredTenant
+                ? `Detectado tenant: ${inferredTenant}`
+                : "Ingresa un correo corporativo para detectar la empresa."}
             </p>
 
             <button type="submit" className="button button--primary" disabled={loading}>
@@ -114,3 +134,4 @@ function Login() {
 }
 
 export default Login;
+

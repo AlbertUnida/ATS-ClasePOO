@@ -1,0 +1,2 @@
+ALTER TABLE Cargos MODIFY competenciasJson LONGTEXT NULL;
+ALTER TABLE Feedback MODIFY competenciasJson LONGTEXT NULL;

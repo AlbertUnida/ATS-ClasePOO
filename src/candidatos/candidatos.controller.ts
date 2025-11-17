@@ -14,7 +14,7 @@ import {
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CandidatosService } from './candidatos.service';
 import { CreateCandidatoDto } from './dto/create-candidato.dto';
-import { AdminOrSuperAdminGuard } from '../common/guards/superadmin.guard';
+import { AdminReclutadorOrSuperAdminGuard } from '../common/guards/superadmin.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiCookieAuth } from '@nestjs/swagger';
 
@@ -24,7 +24,7 @@ export class CandidatosController {
   constructor(private readonly candidatosService: CandidatosService) { }
 
   @Post()
-  @UseGuards(AuthGuard('jwt'), AdminOrSuperAdminGuard)
+  @UseGuards(AuthGuard('jwt'), AdminReclutadorOrSuperAdminGuard)
   @ApiCookieAuth('access-token')
   @ApiOperation({ summary: 'Crear candidato desde backend (uso interno)' })
   @ApiBody({
@@ -62,7 +62,7 @@ export class CandidatosController {
   }
 
   @Get()
-  @UseGuards(AuthGuard('jwt'), AdminOrSuperAdminGuard)
+  @UseGuards(AuthGuard('jwt'), AdminReclutadorOrSuperAdminGuard)
   @ApiCookieAuth('access-token')
   @ApiOperation({ summary: 'Listar candidatos por tenant (incluye puntaje y postulaciones recientes)' })
   @ApiQuery({ name: 'tenant', required: false })
@@ -87,7 +87,7 @@ export class CandidatosController {
   }
 
   @Get(':id')
-  @UseGuards(AuthGuard('jwt'), AdminOrSuperAdminGuard)
+  @UseGuards(AuthGuard('jwt'), AdminReclutadorOrSuperAdminGuard)
   @ApiCookieAuth('access-token')
   @ApiOperation({ summary: 'Detalle completo de un candidato con historial de postulaciones' })
   @ApiParam({ name: 'id', description: 'ID del candidato' })

@@ -1,15 +1,25 @@
-﻿import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   createTenantUser,
-  fetchRolesByTenant,
   fetchTenantById,
   fetchUsers,
   PaginatedResponse,
-  TenantRole,
   updateTenantUser,
   UserListItem,
 } from '../api/backend';
 import { useAuth } from '../context/AuthContext';
+
+type RoleOption = {
+  value: string;
+  label: string;
+  superAdminOnly?: boolean;
+};
+
+const ROLE_OPTIONS: RoleOption[] = [
+  { value: 'SUPERADMIN', label: 'Root (Superadmin)', superAdminOnly: true },
+  { value: 'ADMIN', label: 'Administrador / Gerencia' },
+  { value: 'RECLUTADOR', label: 'Reclutador / People Ops' },
+];
 
 function Users() {
   const { user } = useAuth();
@@ -17,14 +27,10 @@ function Users() {
   const defaultTenant = user?.tenant ?? '';
 
   const [tenantSlug, setTenantSlug] = useState(isSuperAdmin ? '' : defaultTenant);
-  const [roles, setRoles] = useState<TenantRole[]>([]);
-  const [rolesLoading, setRolesLoading] = useState(false);
-  const [rolesError, setRolesError] = useState<string | null>(null);
-
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [roleId, setRoleId] = useState('');
+  const [roleName, setRoleName] = useState('');
   const [creating, setCreating] = useState(false);
   const [createMessage, setCreateMessage] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -34,14 +40,10 @@ function Users() {
   const [editEmail, setEditEmail] = useState('');
   const [editPassword, setEditPassword] = useState('');
   const [editTenantSlug, setEditTenantSlug] = useState('');
-  const [editRoleId, setEditRoleId] = useState('');
+  const [editRoleName, setEditRoleName] = useState('');
   const [editMessage, setEditMessage] = useState<string | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
-
-  const [editRoles, setEditRoles] = useState<TenantRole[]>([]);
-  const [editRolesLoading, setEditRolesLoading] = useState(false);
-  const [editRolesError, setEditRolesError] = useState<string | null>(null);
 
   const [page, setPage] = useState(1);
   const [data, setData] = useState<PaginatedResponse<UserListItem> | null>(null);
@@ -50,6 +52,10 @@ function Users() {
 
   const totalPages = data?.totalPages ?? 1;
   const canCreate = useMemo(() => !!user && (user.isSuperAdmin || user.roles.includes('ADMIN')), [user]);
+  const availableRoleOptions = useMemo(
+    () => ROLE_OPTIONS.filter((option) => !option.superAdminOnly || isSuperAdmin),
+    [isSuperAdmin],
+  );
 
   const loadUsers = useCallback(
     async (pageToLoad: number) => {
@@ -68,85 +74,9 @@ function Users() {
     [],
   );
 
-  const loadCreateRoles = useCallback(
-    async (slug: string) => {
-      if (!slug) {
-        setRoles([]);
-        setRolesError('Debe indicar un tenant para cargar los roles');
-        return;
-      }
-      setRolesLoading(true);
-      setRolesError(null);
-      try {
-        const result = await fetchRolesByTenant(slug);
-        setRoles(result);
-        if (result.length === 0) {
-          setRolesError('El tenant no posee roles definidos aún.');
-        }
-      } catch (err) {
-        setRolesError(err instanceof Error ? err.message : 'No se pudieron cargar los roles');
-        setRoles([]);
-      } finally {
-        setRolesLoading(false);
-      }
-    },
-    [],
-  );
-
-  const loadEditRoles = useCallback(
-    async (slug: string) => {
-      if (!slug) {
-        setEditRoles([]);
-        setEditRolesError('Indica el slug del tenant para cargar roles.');
-        return;
-      }
-      setEditRolesLoading(true);
-      setEditRolesError(null);
-      try {
-        const result = await fetchRolesByTenant(slug);
-        setEditRoles(result);
-        if (!result.length) {
-          setEditRolesError('El tenant no posee roles definidos aún.');
-        }
-      } catch (err) {
-        setEditRolesError(err instanceof Error ? err.message : 'No se pudieron cargar los roles del tenant.');
-        setEditRoles([]);
-      } finally {
-        setEditRolesLoading(false);
-      }
-    },
-    [],
-  );
-
   useEffect(() => {
     loadUsers(page);
   }, [page, loadUsers]);
-
-  useEffect(() => {
-    if (user && !isSuperAdmin) {
-      loadCreateRoles(user.tenant);
-    }
-  }, [user, isSuperAdmin, loadCreateRoles]);
-
-  useEffect(() => {
-    if (roles.length && !roles.some((role) => role.id === roleId)) {
-      setRoleId('');
-    }
-  }, [roles, roleId]);
-
-  useEffect(() => {
-    if (editRoles.length && editRoleId && !editRoles.some((role) => role.id === editRoleId)) {
-      setEditRoleId('');
-    }
-  }, [editRoles, editRoleId]);
-
-  useEffect(() => {
-    if (isSuperAdmin) {
-      setRoles([]);
-      setRoleId('');
-      setRolesError(null);
-    }
-  }, [tenantSlug, isSuperAdmin]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -157,7 +87,7 @@ function Users() {
       return;
     }
 
-    if (!roleId) {
+    if (!roleName) {
       setCreateError('Selecciona un rol.');
       return;
     }
@@ -173,7 +103,7 @@ function Users() {
           email: email.trim().toLowerCase(),
           password,
           tenantSlug: isSuperAdmin ? tenantSlug.trim() : undefined,
-          roleId,
+          roleName,
         },
         isSuperAdmin,
       );
@@ -181,7 +111,7 @@ function Users() {
       setName('');
       setEmail('');
       setPassword('');
-      setRoleId('');
+      setRoleName('');
       await loadUsers(page);
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : 'No se pudo crear el usuario');
@@ -196,32 +126,23 @@ function Users() {
       setEditName(item.name_usuario);
       setEditEmail(item.email);
       setEditPassword('');
-      setEditRoleId('');
+      setEditRoleName('');
       setEditMessage(null);
       setEditError(null);
-      setEditRoles([]);
-      setEditRolesError(null);
 
-      let slugValue = '';
       if (isSuperAdmin) {
         try {
           const tenant = await fetchTenantById(item.tenantId);
-          slugValue = tenant.slug;
+          setEditTenantSlug(tenant.slug);
         } catch (err) {
-          setEditRolesError(
-            err instanceof Error ? err.message : 'No se pudo obtener el tenant asociado al usuario.',
-          );
+          setEditTenantSlug('');
+          setEditError(err instanceof Error ? err.message : 'No se pudo obtener el tenant del usuario.');
         }
       } else {
-        slugValue = user?.tenant ?? '';
-      }
-
-      setEditTenantSlug(slugValue);
-      if (slugValue) {
-        await loadEditRoles(slugValue);
+        setEditTenantSlug(user?.tenant ?? '');
       }
     },
-    [isSuperAdmin, loadEditRoles, user],
+    [isSuperAdmin, user],
   );
 
   const handleUpdateUser = async (event: FormEvent) => {
@@ -239,8 +160,8 @@ function Users() {
     if (editPassword.trim()) {
       payload.password = editPassword.trim();
     }
-    if (editRoleId) {
-      payload.roleId = editRoleId;
+    if (editRoleName) {
+      payload.roleName = editRoleName;
     }
     if (isSuperAdmin) {
       if (!editTenantSlug.trim()) {
@@ -273,7 +194,7 @@ function Users() {
   return (
     <section className="card">
       <h2>Usuarios</h2>
-      <p>Listado y creación de usuarios según tus permisos.</p>
+      <p>Listado y creacion de usuarios segun tus permisos.</p>
 
       {canCreate && (
         <form className="form" onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
@@ -281,22 +202,11 @@ function Users() {
           {isSuperAdmin && (
             <label>
               Tenant slug
-              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <input
-                  value={tenantSlug}
-                  onChange={(event) => setTenantSlug(event.target.value)}
-                  placeholder="ej: tecnoedil"
-                  style={{ flex: '1 1 220px' }}
-                />
-                <button
-                  type="button"
-                  className="button button--small"
-                  onClick={() => loadCreateRoles(tenantSlug.trim())}
-                  disabled={rolesLoading}
-                >
-                  {rolesLoading ? 'Cargando...' : 'Cargar roles'}
-                </button>
-              </div>
+              <input
+                value={tenantSlug}
+                onChange={(event) => setTenantSlug(event.target.value)}
+                placeholder="ej: tecnoedil"
+              />
             </label>
           )}
           <label>
@@ -304,11 +214,11 @@ function Users() {
             <input value={name} onChange={(event) => setName(event.target.value)} required />
           </label>
           <label>
-            Correo electrónico
+            Correo electronico
             <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
           </label>
           <label>
-            Contraseña
+            Contrasena
             <input
               type="password"
               value={password}
@@ -319,17 +229,16 @@ function Users() {
           </label>
           <label>
             Rol
-            <select value={roleId} onChange={(event) => setRoleId(event.target.value)} required>
+            <select value={roleName} onChange={(event) => setRoleName(event.target.value)} required>
               <option value="">Selecciona un rol</option>
-              {roles.map((role) => (
-                <option key={role.id} value={role.id}>
-                  {role.name}
+              {availableRoleOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>
           </label>
-          {rolesError && <div className="alert alert--error">{rolesError}</div>}
-          <button type="submit" className="button" disabled={creating || rolesLoading}>
+          <button type="submit" className="button" disabled={creating}>
             {creating ? 'Guardando...' : 'Crear usuario'}
           </button>
           {createMessage && <div className="alert alert--success">{createMessage}</div>}
@@ -346,11 +255,11 @@ function Users() {
               <input value={editName} onChange={(event) => setEditName(event.target.value)} />
             </label>
             <label>
-              Correo electrónico
+              Correo electronico
               <input type="email" value={editEmail} onChange={(event) => setEditEmail(event.target.value)} />
             </label>
             <label>
-              Contraseña (deja vacío para mantenerla)
+              Contrasena (deja vacio para mantenerla)
               <input
                 type="password"
                 value={editPassword}
@@ -361,39 +270,27 @@ function Users() {
             <label>
               Tenant slug
               {isSuperAdmin ? (
-                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <input
-                    value={editTenantSlug}
-                    onChange={(event) => setEditTenantSlug(event.target.value)}
-                    placeholder="ej: tecnoedil"
-                    style={{ flex: '1 1 220px' }}
-                  />
-                  <button
-                    type="button"
-                    className="button button--small"
-                    onClick={() => loadEditRoles(editTenantSlug.trim())}
-                    disabled={editRolesLoading}
-                  >
-                    {editRolesLoading ? 'Cargando...' : 'Cargar roles'}
-                  </button>
-                </div>
+                <input
+                  value={editTenantSlug}
+                  onChange={(event) => setEditTenantSlug(event.target.value)}
+                  placeholder="ej: tecnoedil"
+                />
               ) : (
                 <input value={editTenantSlug} readOnly />
               )}
             </label>
             <label>
               Rol (opcional)
-              <select value={editRoleId} onChange={(event) => setEditRoleId(event.target.value)}>
+              <select value={editRoleName} onChange={(event) => setEditRoleName(event.target.value)}>
                 <option value="">Mantener rol actual</option>
-                {editRoles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name}
+                {availableRoleOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>
             </label>
-            {editRolesError && <div className="alert alert--error">{editRolesError}</div>}
-            <button type="submit" className="button" disabled={updating || editRolesLoading}>
+            <button type="submit" className="button" disabled={updating}>
               {updating ? 'Guardando...' : 'Guardar cambios'}
             </button>
             {editMessage && <div className="alert alert--success">{editMessage}</div>}
@@ -437,7 +334,7 @@ function Users() {
                   <td>{item.email}</td>
                   <td>{item.name_rol ?? 'N/A'}</td>
                   <td>{item.name_empresa ?? 'N/A'}</td>
-                  <td>{item.active ? 'Sí' : 'No'}</td>
+                  <td>{item.active ? 'Si' : 'No'}</td>
                   <td>{new Date(item.createdAt).toLocaleDateString()}</td>
                 </tr>
               ))
@@ -459,7 +356,7 @@ function Users() {
           Anterior
         </button>
         <span>
-          Página {page} de {totalPages}
+          Pagina {page} de {totalPages}
         </span>
         <button
           type="button"

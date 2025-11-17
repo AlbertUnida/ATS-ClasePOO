@@ -14,7 +14,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiSecurity, ApiCookieAuth, ApiParam } from '@nestjs/swagger';
 
 export interface User {
-  id: string;
+  id?: string;
+  sub?: string;
   email: string;
   name: string;
   roles: string[];  // o cualquier tipo que defina los roles
@@ -150,7 +151,7 @@ export class AuthController {
     @Query('limit') limit: number = 10,
     @Req() req: RequestWithUser  // Accedemos a la solicitud para obtener el usuario logueado
   ) {
-    const currentUserId = req.user.id;  // Obtenemos el ID del usuario desde la solicitud
+    const currentUserId = req.user?.sub ?? req.user?.id ?? '';
     const userRole = req.user.roles;    // Obtenemos los roles del usuario desde la solicitud
 
     // Llamamos al servicio pasando la información necesaria

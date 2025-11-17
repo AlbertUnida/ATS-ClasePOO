@@ -87,7 +87,7 @@ model Cargos {
   tenantId         String
   tenant           Tenants  @relation(fields: [tenantId], references: [id])
   nombre           String
-  competenciasJson String?
+  competenciasJson String? @db.LongText
   createdAt        DateTime @default(now())
 
   vacantes Vacantes[]
@@ -244,7 +244,7 @@ model Feedback {
   postulacion      Postulaciones @relation(fields: [postulacionId], references: [id], onDelete: Cascade)
   evaluadorUserId  String?
   puntaje          Int
-  competenciasJson String?
+  competenciasJson String? @db.LongText
   comentario       String?
   recomendacion    Boolean?
   ts               DateTime      @default(now())
